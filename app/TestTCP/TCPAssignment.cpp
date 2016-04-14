@@ -520,13 +520,18 @@ void TCPAssignment::syscall_connect(UUID syscallUUID, int pid, int fd, struct so
 		this->getHost()->getIPAddr((u8 *) &expectedIP , this->getHost()->getRoutingTable((u8 *)&expectedIP));
 		//Address of this socket
 		expectedIP = htonl(expectedIP);
-		socketList[socIndex].tcpUniqueID.sourceIP = expectedIP;
-		socketList[socIndex].tcpUniqueID.sourcePort = expectedPort;
-		socketList[socIndex].tcpUniqueID.desIP =  ntohl(getIP((sockaddr_in*)address));
-		socketList[socIndex].tcpUniqueID.desPort = ntohs(getPort((sockaddr_in*)address));
-		socketList[socIndex].isAlreadyBound = true;
-		socketList[socIndex].receiveBuf = (u8 *) malloc(SEND_BUF_SIZE);
+	} else {
+		expectedIP = socketList[socIndex].tcpUniqueID.sourceIP;
+		expectedPort = socketList[socIndex].tcpUniqueID.sourcePort;
 	}
+	socketList[socIndex].tcpUniqueID.sourceIP = expectedIP;
+	socketList[socIndex].tcpUniqueID.sourcePort = expectedPort;
+	socketList[socIndex].tcpUniqueID.desIP =  ntohl(getIP((sockaddr_in*)address));
+	socketList[socIndex].tcpUniqueID.desPort = ntohs(getPort((sockaddr_in*)address));
+	socketList[socIndex].isAlreadyBound = true;
+	socketList[socIndex].receiveBuf = (u8 *) malloc(SEND_BUF_SIZE);
+	u32 tempSourceIP = htonl(socketList[socIndex].tcpUniqueID.sourceIP);
+	u32 tempDesIP = htonl(socketList[socIndex].tcpUniqueID.desIP);
 	//Start connecting by send SYN
 	socketList[socIndex].socketState = S_SYN_SENT;
 	socketList[socIndex].firstSending = rand();
@@ -541,14 +546,14 @@ void TCPAssignment::syscall_connect(UUID syscallUUID, int pid, int fd, struct so
 	tempHeader.flag = 0x02;
 	tempHeader.window = htons(RECEIVE_BUF_SIZE);
 	tempHeader.checksum = 0;
-	tempHeader.checksum = htons(findTcpChecksum(htonl(expectedIP), getIP((sockaddr_in*)address),(u8*)&tempHeader, 20));
+
+	tempHeader.checksum = htons(findTcpChecksum(tempSourceIP, tempDesIP,(u8*)&tempHeader, 20));
 	std::cout << "CHECK SUM " << " " << htons(findTcpChecksum(htonl(expectedIP), getIP((sockaddr_in*)address),(u8*)&tempHeader, 20)) << std::endl;
 
 	Packet* sendPacket = this->allocatePacket(34 + 20);
-	u32 tempSourceIP = htonl(socketList[socIndex].tcpUniqueID.sourceIP);
-	u32 tempDesIP = htonl(socketList[socIndex].tcpUniqueID.desIP);
-	sendPacket->writeData(26, &(tempSourceIP), 4);
-	sendPacket->writeData(30, &(tempDesIP),  4);
+	
+	sendPacket->writeData(26, &tempSourceIP, 4);
+	sendPacket->writeData(30, &tempDesIP,  4);
 	sendPacket->writeData(34, &tempHeader, 20);
 	this->sendPacket ("IPv4", sendPacket);
 	// this->returnSystemCall(syscallUUID, 0);
@@ -821,45 +826,46 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
   	return;*/
   }
  	packet->readData(34 + headerLength, data, dataLength);
-	
-  
+
 	if (SYN && !ACK){   // Receive only SYN
 		int listenSocket = findSocketByAddress(desPort, desIP, S_LISTEN);
 		int sentSynSocket = findSocketByAddress(desPort, desIP, S_SYN_SENT);
 		int toBeEstablishedSocketsIndex = -1;
-
+		if (demArrive < 4) printf("TIME %d %d\n", demArrive, sentSynSocket);
 		//if the socket is just sent SYN (part of three-way-hand shake in client side)
 		if (sentSynSocket != -1){
 
 			socketList[sentSynSocket].threeWayHandShake++;
 			if (socketList[sentSynSocket].threeWayHandShake == 2){
+				
 				//Finished three way handshake
 				socketList[sentSynSocket].socketState = S_ESTABLISHED;
+
+				socketList[sentSynSocket].readyReceive = ntohl(tcpHeader.sequence) + 1;
+				//Send back ACK
+				tempHeader = tcpHeader;
+				tempHeader.desPort = tcpHeader.sourcePort;
+				tempHeader.sourcePort = tcpHeader.desPort;
+				tempHeader.flag = 0x10;
+				tempHeader.sequence = ntohl(socketList[sentSynSocket].firstSending);
+				tempHeader.acknowledge = ntohl(addNum(ntohl(tcpHeader.sequence), 1));
+
+				tempHeader.window = htons(RECEIVE_BUF_SIZE);
+				tempHeader.checksum = 0;
+				tempHeader.checksum = htons(findTcpChecksum(htonl(sourceIP), htonl(desIP), (u8*)&tempHeader, tempHeader.headerLength / 4));
+				
+				u32 tempDesIP = htonl(desIP);
+				u32 tempSourceIP = htonl(sourceIP);
+				
+				Packet* returnPacket = this->clonePacket(packet);
+				returnPacket->writeData(26, &(tempDesIP), 4);
+				returnPacket->writeData(30, &(tempSourceIP),  4);
+				returnPacket->writeData(TCPStart, &tempHeader, 20);
+
+				this->sendPacket ("IPv4", returnPacket);
 				this->returnSystemCall(socketList[sentSynSocket].connectId, 0);
+				return;
 			}
-			//Send back ACK
-			socketList[sentSynSocket].firstSending = rand();
-			socketList[sentSynSocket].nextSend = socketList[sentSynSocket].firstSending;
-			tempHeader = tcpHeader;
-			tempHeader.desPort = tcpHeader.sourcePort;
-			tempHeader.sourcePort = tcpHeader.desPort;
-			tempHeader.flag = 0x10;
-			tempHeader.sequence = socketList[sentSynSocket].firstSending;
-			tempHeader.acknowledge = ntohl(addNum(ntohl(tcpHeader.sequence), 1));
-
-			tempHeader.window = RECEIVE_BUF_SIZE;
-			tempHeader.checksum = 0;
-			tempHeader.checksum = htons(findTcpChecksum(htonl(sourceIP), htonl(desIP), (u8*)&tempHeader, tempHeader.headerLength / 4));
-			
-			u32 tempDesIP = htonl(desIP);
-			u32 tempSourceIP = htonl(sourceIP);
-			
-			Packet* returnPacket = this->clonePacket(packet);
-			returnPacket->writeData(26, &(tempDesIP), 4);
-			returnPacket->writeData(30, &(tempSourceIP),  4);
-			returnPacket->writeData(TCPStart, &tempHeader, 20);
-
-			this->sendPacket ("IPv4", returnPacket);
 			return;
 			
 		}
@@ -985,6 +991,39 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 			socketList[sentSynSocket].peerWindow = htons(tcpHeader.window);
 			if (socketList[sentSynSocket].threeWayHandShake == 2){
 				socketList[sentSynSocket].socketState = S_ESTABLISHED;
+				if (socketList[sentSynSocket].threeWayHandShake == 2){
+					//Finished three way handshake
+					printf("Finished threeWayHandShake\n");
+					printf("TIME %d\n", demArrive);
+					socketList[sentSynSocket].socketState = S_ESTABLISHED;
+					socketList[sentSynSocket].firstSending = ntohl(tcpHeader.acknowledge);
+					socketList[sentSynSocket].nextSend = ntohl(tcpHeader.acknowledge);
+					socketList[sentSynSocket].readyReceive = ntohl(tcpHeader.sequence) + 1;
+					//Send back ACK
+					tempHeader = tcpHeader;
+					tempHeader.desPort = tcpHeader.sourcePort;
+					tempHeader.sourcePort = tcpHeader.desPort;
+					tempHeader.flag = 0x10;
+					tempHeader.sequence = ntohl(socketList[sentSynSocket].firstSending);
+					tempHeader.acknowledge = ntohl(addNum(ntohl(tcpHeader.sequence),0));
+					printf("Sequence is %08x\n", tempHeader.sequence);
+					printf("Acknowledge is %08x\n", tempHeader.acknowledge);
+					tempHeader.window = htons(RECEIVE_BUF_SIZE);
+					tempHeader.checksum = 0;
+					tempHeader.checksum = htons(findTcpChecksum(htonl(sourceIP), htonl(desIP), (u8*)&tempHeader, tempHeader.headerLength / 4));
+					
+					u32 tempDesIP = htonl(desIP);
+					u32 tempSourceIP = htonl(sourceIP);
+					
+					Packet* returnPacket = this->clonePacket(packet);
+					returnPacket->writeData(26, &(tempDesIP), 4);
+					returnPacket->writeData(30, &(tempSourceIP),  4);
+					returnPacket->writeData(TCPStart, &tempHeader, 20);
+
+					this->sendPacket ("IPv4", returnPacket);
+					this->returnSystemCall(socketList[sentSynSocket].connectId, 0);
+					return;
+				}
 			}
 			return;
 		}
