@@ -16,6 +16,7 @@
 #include <netinet/ip.h>
 #include <netinet/in.h>
 #include <E/E_TimerModule.hpp>
+#include <stdlib.h>     /* srand, rand */
 
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -25,7 +26,7 @@ typedef uint64_t u64;
 
 namespace E
 {
-
+static const u32 MSS = 512;
 static const u32 RECEIVE_BUF_SIZE = 51200;
 static const u32 SEND_BUF_SIZE = 51200;
 struct TcpUniqueID {
@@ -54,21 +55,36 @@ enum SocketStates { S_CLOSED, S_LISTEN, S_SYN_SENT, S_SYN_RCVD, S_ESTABLISHED, S
 struct Socket {
 	int fd;
 	int pid;
-
+	int threeWayHandShake = 0;
+	int connectId;
+	bool alreadySentSYNACK = false;
 	SocketStates socketState = S_CLOSED;
 	
 	bool isAlreadyBound = false;
 	struct TcpUniqueID tcpUniqueID;
 
 	u8* receiveBuf;
-	u32 startCanRead;
-	u32 windowBase;
+	u32 startCanRead = 0;
+	u32 windowBase = 0;
 	u32 readyReceive;
 	u16 rwnd = RECEIVE_BUF_SIZE;
-	u32 peerBufSize;
+	u16 peerWindow;
 	u32 peerNext;
 
-	u8* sendBuf;
+	bool isWaitingRead = false;
+	int readId;
+	u32 readLength;
+	u8* readBuf;
+
+	u8* sendBuf = NULL;
+	u32 sendBufHead = 0;
+	u32 sendBufTail = 0;
+	u32 firstSending;
+	u32 nextSend;
+	bool isWaitingWrite = false;
+	int writeId;
+	u32 writeLength;
+
 
 };
 
@@ -101,7 +117,6 @@ struct establishedSockets {
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
-	//list of processes
 	std::vector<Socket> socketList;
 	std::vector<toBeEstablishedSockets> toBeEstablishedList;
 	std::vector<establishedSockets> establishedList;
@@ -115,25 +130,20 @@ private:
 	int findToBeEstablishedSockets(u16 port, u32 IP);
 	int findWaitingAcceptSocket(u16 port, u32 IP);
 	int findEstablishedSockets(u16 port, u32 IP);
+	bool tryToFreeSendingBuf(int socIndex);
+	int tryToSendPacket(int socIndex, u8* buf, u32 length);
 
 
 	void syscall_socket(UUID syscallUUID, int pid, int param1, int param2);
 	void syscall_bind(UUID syscallUUID, int pid, int param1, struct sockaddr* param2, socklen_t param3);
 	void syscall_listen(UUID syscallUUID, int pid, int fd, int backlog);
-	void syscall_connect(UUID syscallUUID, int pid, int fd, struct sockadd* address, socklen_t addLength);
+	void syscall_connect(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t addLength);
 	void syscall_accept(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
-	void syscall_read(UUID syscallUUID, int pid, int fd, char* buf, int sendingLength);
-	void syscall_write(UUID syscallUUID, int pid, int fd, char* buf, int sendingLength);
+	void syscall_read(UUID syscallUUID, int pid, int fd, u8* buf, u32 sendingLength);
+	void syscall_write(UUID syscallUUID, int pid, int fd, u8* buf, u32 length);
 	void syscall_close(UUID syscallUUID, int pid, int fd);
 	void syscall_getsockname(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
 	void syscall_getpeername(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
-/*	virtual void syscall_close(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
-	virtual void syscall_read(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
-	virtual void syscall_write(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
-	virtual void syscall_connect(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
-	virtual void syscall_listen(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
-	virtual void syscall_accept(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
-	virtual void syscall_bind(UUID syscallUUID, int pid, const SystemCallParameter& param) final;*/
 private:
 	virtual void timerCallback(void* payload) final;
 
