@@ -1,0 +1,170 @@
+/*
+ * E_TCPAssignment.hpp
+ *
+ *  Created on: 2014. 11. 20.
+ *      Author: 근홍
+ */
+
+#ifndef E_TCPASSIGNMENT_HPP_
+#define E_TCPASSIGNMENT_HPP_
+
+
+#include <E/Networking/E_Networking.hpp>
+#include <E/Networking/E_Host.hpp>
+#include <arpa/inet.h>
+#include <netinet/tcp.h>
+#include <netinet/ip.h>
+#include <netinet/in.h>
+#include <vector>
+
+#include <E/E_TimerModule.hpp>
+
+namespace E
+{
+	static const Time TCP_DEFAULT_RTT = (1000*1000*100);
+	static const Time TCP_TIME_WAIT = (60*1000*1000*1000UL);
+	static const int RECEIVE_BUFFER_SIZE = 51200;
+	static const int SEND_BUFFER_SIZE = 51200;
+	static const int RTT_K = (4);
+	static const Real RTT_ALPHA = (0.125);
+	static const Real RTT_BETA = (0.25);
+	enum SocketStates { S_CLOSED, S_LISTEN, S_SYN_SENT, S_SYN_RCVD, S_ESTABLISHED, S_CLOSE_WAIT, S_FIN_WAIT_1, S_FIN_WAIT_2 ,S_LAST_ACK, S_CLOSING, S_TIME_WAIT, S_ANY_STATE};
+
+	enum CongestionStates { C_SLOWSTART, C_CONGESTIONAVOIDANCE, C_FASTRETRANSMIT};
+
+	struct TCPHeader{			// All the fields are in network byte order
+		uint16_t src_port; 
+		uint16_t dest_port; 
+		uint32_t sequence_nb;
+		uint32_t acknowledge_nb; 
+		uint8_t headerLength; 	// Actually: 4-bit "header length" field and 4-bit unused field  
+		uint8_t flag_field; 
+		uint16_t rcwn; 
+		uint16_t checksum;
+		uint16_t urgentDataPointer = 0; 				
+	};
+
+	struct TimerMessage {
+		UUID id;
+		int fd;
+		int pid;
+		bool notUsedAnyMore;
+		bool timerForReliableTransfer = false;
+		bool timerForSending = false;
+		Time startFromTime;
+	};
+
+	struct blockingAcceptCall {
+		int fd;
+		int pid;
+		unsigned int blockingCallUID;
+		SystemCallInterface::SystemCallParameter param;
+	};
+
+	struct blockingConnectCall {
+		int fd;
+		int pid;
+		unsigned int blockingCallUID;
+	};
+
+	struct socketInfo {
+		int fd;							// File descriptor for the socket
+		int pid;						// PID of the process owns the socket
+		bool addrNotExplicitlySpecified;	// Has the socket addr been explicitly specified yet (e.g., using bind ...) ?
+		struct sockaddr_in sourceAddr;  // Information about the source address (IP, port, ...) of the socket.
+		struct sockaddr_in destAddr;	// Information about the destination address (IP, port, ...) of the socket.
+		SocketStates socketState;
+		CongestionStates congestionState = C_SLOWSTART;
+		int backlogNb;
+		int nbPendingCons;	
+		unsigned int sequence_nb;
+		unsigned int acknowledge_nb;
+		bool establishedAndAccepted = false;
+
+		bool bufferAllocated = false;
+		char * receiveBuffer;	// Will be allocated for socket that is associated with an ESTABLISH connection
+		char * sendBuffer;		// Will be allocated for socket that is associated with an ESTABLISH connection
+		int * sizeOfSentSegments;
+		bool sentSomeData = false;
+
+		unsigned int send_buffer_free_space = SEND_BUFFER_SIZE;
+		unsigned int recv_buffer_free_space = RECEIVE_BUFFER_SIZE;
+
+		unsigned int send_base_index = 0;
+		unsigned int send_next_sent_index = 0;
+
+		unsigned int recv_base_index = 0;
+		unsigned int recv_next_saved_index = 0;
+
+		unsigned int send_base;
+		unsigned int receive_base;
+
+		unsigned int expected_seqnum;
+
+		bool hasBlockingWriteCall = false;
+		UUID blockingWriteCallUUID;
+		int tempUserDataLength;
+		int tempAmountToBeSent;
+		char * tempUserDataPointer;
+
+		bool hasBlockingReadCall = false;
+		UUID blockingReadCallUUID;
+		char* userBuffer;
+		int tempUserMaxLength;
+
+		UUID timerForReliableTransferUUID;
+		TimerMessage* mTimerMsgReliableTransfer;
+		bool isTimerRunning = false;
+
+		int congestion_window;
+		int flow_window;
+
+		int nbOfDuplicateAcks = 0;
+
+		int amountDataReceivedThisRTT = 0;
+
+		Time SmoothRTT = 0;
+		Real RTTVAR = 0;
+		Time timeWhenRTTStart = 0;
+	}; 
+
+
+
+class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
+{
+private:
+	std::vector<socketInfo> mSocketList;
+	std::vector<blockingAcceptCall> mblockingAcceptCalls;
+	std::vector<blockingConnectCall> mblockingConnectCalls;
+private:
+
+private:
+	virtual void timerCallback(void* payload) final;
+
+public:
+	TCPAssignment(Host* host);
+	virtual void initialize();
+	virtual void finalize();
+	virtual ~TCPAssignment();
+	virtual int findIndex (int key_fd, int key_pid, SocketStates aState);
+	virtual int removeSocketInfo (int key_fd, int key_pid, SocketStates aState);
+	virtual bool isThereConflict (unsigned long inputIpAddr, u_short inputPort, int mIndex);
+	virtual Time calculateRTO (int socketListIndex, Time nRTT, int mode);
+protected:
+	virtual void systemCallback(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
+	virtual void packetArrived(std::string fromModule, Packet* packet) final;
+};
+
+class TCPAssignmentProvider
+{
+private:
+	TCPAssignmentProvider() {}
+	~TCPAssignmentProvider() {}
+public:
+	static HostModule* allocate(Host* host) { return new TCPAssignment(host); }
+};
+
+}
+
+
+#endif /* E_TCPASSIGNMENT_HPP_ */

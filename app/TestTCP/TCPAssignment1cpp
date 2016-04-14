@@ -1,0 +1,1505 @@
+/*
+ * E_TCPAssignment.cpp
+ *
+ *  Created on: 2014. 11. 20.
+ *      Author: 근홍
+ */
+
+#include <E/E_TimeUtil.hpp>
+#include <E/E_Common.hpp>
+#include <E/Networking/E_Host.hpp>
+#include <E/Networking/E_Networking.hpp>  
+#include <cerrno>
+#include <E/Networking/E_Packet.hpp>
+#include <E/Networking/E_NetworkUtil.hpp>
+#include "TCPAssignment.hpp"
+#include <netinet/in.h>
+#include <vector>
+#include <iostream>
+#include <arpa/inet.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+
+
+namespace E
+{
+	// ====================================== HELPER FUNCTIONS ====================================== //
+	int min (int a, int b) {
+		if (a < b)
+			return a;
+		return b;
+	}
+
+	int min (int a, int b, int c) {
+		return (min (a, min (b, c)));
+	}
+
+	unsigned short OneComplementAdd (unsigned short nb1, unsigned short nb2)
+	{
+		unsigned short rs = 0;
+		int c;
+		int power = 1;
+		int temp1, temp2, tempBitRs;
+		int carry = 0;
+		
+		for (c = 0; c < 16; c++)
+	  	{
+	    		temp1 = nb1 >> c;
+	 		if (temp1 & 1)
+				temp1 = 1;
+			else
+				temp1 = 0;
+	      		
+			temp2 = nb2 >> c;
+	 		if (temp2 & 1)
+				temp2 = 1;
+			else
+				temp2 = 0;
+
+			tempBitRs = (temp1 + temp2 + carry) % 2;
+			rs = rs + tempBitRs * power;
+
+			if (temp1 + temp2 + carry > 1)
+				carry = 1;
+			else
+				carry = 0;
+
+			power = power * 2;
+		}	
+		
+		if (carry == 1)
+			rs = OneComplementAdd(rs, 1);
+
+		return rs;
+	} 
+	
+	unsigned short OneComplementAdd_16_32 (unsigned short nb1, unsigned long nb2) {
+		uint16_t* tempPointer;
+		uint16_t rs = nb1;
+		tempPointer = (uint16_t *) & nb2;
+		rs = OneComplementAdd(rs,  *tempPointer);
+		tempPointer += 1;
+		rs = OneComplementAdd(rs,  *tempPointer);
+		return rs;
+	}
+	
+	uint16_t calculateTCPCheckSum (struct TCPHeader mHeader, uint32_t src_ip, uint32_t dest_ip, char *appDataPointer = NULL, int dataLength = 0) {
+		uint16_t checksum = 0;
+		uint16_t temp_field = mHeader.headerLength * 256 + mHeader.flag_field;
+		checksum = OneComplementAdd_16_32(checksum, ntohl(src_ip));
+		checksum = OneComplementAdd_16_32(checksum, ntohl(dest_ip));
+		checksum = OneComplementAdd(checksum, 6);  // Protocol nb of TCP is 6
+		checksum = OneComplementAdd(checksum, 20 + dataLength); 
+		checksum = OneComplementAdd(checksum, ntohs(mHeader.src_port));
+		checksum = OneComplementAdd(checksum, ntohs(mHeader.dest_port));
+		checksum = OneComplementAdd_16_32(checksum, ntohl(mHeader.sequence_nb));
+		checksum = OneComplementAdd_16_32(checksum, ntohl(mHeader.acknowledge_nb));
+		checksum = OneComplementAdd(checksum, temp_field);
+		checksum = OneComplementAdd(checksum, ntohs(mHeader.rcwn));
+		checksum = OneComplementAdd(checksum, ntohs(mHeader.urgentDataPointer));
+		if (appDataPointer != NULL && dataLength > 0) {
+			uint16_t * tempPointer;
+			char AChunk[2];
+			int counter = 0;
+			while (counter < dataLength) {
+				for (int i = 0; i < 2; i++) {
+					if (counter < dataLength)
+						AChunk[i] = appDataPointer[counter];
+					else
+						AChunk[i] = 0;
+					counter++;
+				}
+				tempPointer = (uint16_t *) AChunk;
+				checksum = OneComplementAdd(checksum, ntohs(*tempPointer)); 
+			}
+		}
+		checksum = ~checksum;
+		checksum = htons(checksum);
+		return checksum;
+	}
+
+	// Get the port number from a sockaddr_in struct 
+	u_short getPortNumber (sockaddr_in * tempSockaddrIn) {
+		return tempSockaddrIn->sin_port;
+	}
+
+
+	// Get the ip address from a sockaddr_in struct
+	unsigned long getIP (sockaddr_in * tempSockaddrIn) {
+		return (tempSockaddrIn->sin_addr).s_addr;
+	}
+	
+	TCPHeader getFINSegmentHeader (socketInfo aSocket) { 	// aSocket ~ the socket associated with the connection
+		struct TCPHeader mHeader;
+
+		uint32_t src_ip = getIP(& (aSocket.sourceAddr)) ;
+		uint32_t dest_ip = getIP(& (aSocket.destAddr));
+					
+		mHeader.src_port =  getPortNumber(& (aSocket.sourceAddr));
+		mHeader.dest_port = getPortNumber(& (aSocket.destAddr));
+		mHeader.sequence_nb = htonl(aSocket.sequence_nb);
+		mHeader.acknowledge_nb = 0;
+		mHeader.rcwn = htons(51200);
+		mHeader.flag_field = 0x01;
+		mHeader.headerLength = 0x50;	
+		mHeader.checksum = calculateTCPCheckSum(mHeader, src_ip, dest_ip);
+					
+		return mHeader;
+	}
+	
+
+	bool isSameAddr (uint32_t IP1, uint16_t portNb1, uint32_t IP2, uint16_t portNb2) {
+		bool isIpEqual = false;
+		bool isPortEqual = false;
+				
+		if (IP1 == 0 || IP2 == 0 || IP1 == IP2)
+			isIpEqual = true;
+
+		if (portNb1 == portNb2) 
+			isPortEqual = true;
+
+		return isIpEqual & isPortEqual;
+	}
+	
+	bool mappedToSocket (uint32_t src_ip, uint16_t src_port, uint32_t dest_ip, uint16_t dest_port, socketInfo mSocketInfo) {
+		
+		uint16_t tempPortIn = getPortNumber(&mSocketInfo.sourceAddr);
+		uint32_t tempIpAddrIn = getIP(&mSocketInfo.sourceAddr);
+		uint16_t tempPortOut = getPortNumber(&mSocketInfo.destAddr);
+		uint32_t tempIpAddrOut = getIP(&mSocketInfo.destAddr);
+		return (isSameAddr(dest_ip, dest_port, tempIpAddrIn, tempPortIn) && isSameAddr(src_ip, src_port, tempIpAddrOut, tempPortOut));
+	}
+
+	sockaddr_in CreateSockAddrIn (unsigned long inputIpAddr, u_short inputPort) {
+		struct sockaddr_in tempAddr;
+		socklen_t len = sizeof(tempAddr);
+		memset(&tempAddr, 0, len);
+		tempAddr.sin_family = AF_INET;
+		tempAddr.sin_addr.s_addr = inputIpAddr;
+		tempAddr.sin_port = inputPort;
+		return tempAddr;		
+	}
+
+	int getMSS () {
+		// To be considered later. Now let's return a fixed value	
+		return 512;	
+	}
+
+	Real abs (Real a) {
+		if (a < 0)
+			return -a;
+		return a;
+	}
+
+	// ============================================================================================== //
+
+	TCPAssignment::TCPAssignment(Host* host) : HostModule("TCP", host),
+			NetworkModule(this->getHostModuleName(), host->getNetworkSystem()),
+			SystemCallInterface(AF_INET, IPPROTO_TCP, host),
+			NetworkLog(host->getNetworkSystem()),
+			TimerModule(host->getSystem())
+	{
+
+	}
+
+	int TCPAssignment::findIndex (int key_fd, int key_pid, SocketStates aState) {
+		int rsIndex = -1;
+		for (int i = 0; i < (int) mSocketList.size(); i++) 
+			if (mSocketList[i].fd == key_fd && mSocketList[i].pid == key_pid && (aState == S_ANY_STATE || mSocketList[i].socketState == aState)) {
+				rsIndex = i; 
+				break;
+			}
+		return rsIndex;
+	}
+
+
+	int TCPAssignment::removeSocketInfo (int key_fd, int key_pid, SocketStates aState) {
+		while (true) {
+			int index = findIndex(key_fd, key_pid, aState);
+			if (index < 0)
+				return -1;
+			if (mSocketList[index].bufferAllocated) {
+				free (mSocketList[index].receiveBuffer);
+				free (mSocketList[index].sendBuffer);	
+				free (mSocketList[index].sizeOfSentSegments);
+			}		
+			mSocketList.erase(mSocketList.begin() + index);
+		}
+		return 0;
+	}
+
+	bool TCPAssignment::isThereConflict (unsigned long inputIpAddr, u_short inputPort, int mIndex) {
+		bool hasConflict = false;
+		u_short tempPort;
+		unsigned long tempIpAddr;
+		for (int i = 0; i < (int) mSocketList.size(); i++) 
+			if (i != mIndex && mSocketList[i].addrNotExplicitlySpecified == false && (mSocketList[i].socketState == S_LISTEN || mSocketList[i].socketState == S_CLOSED)) {					
+				tempPort = getPortNumber(&mSocketList[i].sourceAddr);
+				tempIpAddr = getIP(&mSocketList[i].sourceAddr);
+				if (isSameAddr(inputIpAddr, inputPort, tempIpAddr, tempPort)) {
+					hasConflict = true;
+					break;
+				}
+		}
+		return hasConflict;
+	}
+
+	Time TCPAssignment::calculateRTO (int socketListIndex, Time nRTT, int mode) {
+		if (mode < 0)
+			return mSocketList[socketListIndex].SmoothRTT  + RTT_K * mSocketList[socketListIndex].RTTVAR;
+		if (mSocketList[socketListIndex].SmoothRTT == 0 && mSocketList[socketListIndex].RTTVAR == 0) 
+		{
+			mSocketList[socketListIndex].SmoothRTT = nRTT;
+			mSocketList[socketListIndex].RTTVAR = nRTT/2;
+			return mSocketList[socketListIndex].SmoothRTT  + RTT_K * mSocketList[socketListIndex].RTTVAR; 		
+		}
+		else {
+			mSocketList[socketListIndex].RTTVAR = (1 - RTT_BETA) * mSocketList[socketListIndex].RTTVAR + RTT_BETA * abs(mSocketList[socketListIndex].RTTVAR - nRTT);
+			mSocketList[socketListIndex].SmoothRTT = (1 - RTT_ALPHA) * mSocketList[socketListIndex].SmoothRTT + RTT_ALPHA * nRTT;
+			return mSocketList[socketListIndex].SmoothRTT  + RTT_K * mSocketList[socketListIndex].RTTVAR; 				
+		}
+	}
+
+	TCPAssignment::~TCPAssignment()
+	{
+
+	}
+
+	void TCPAssignment::initialize()
+	{
+		srand (time(NULL));
+		mSocketList.clear();
+		mblockingAcceptCalls.clear();
+		mblockingConnectCalls.clear();
+	}
+
+	void TCPAssignment::finalize()
+	{
+		for (int i = 0; i < (int) mSocketList.size(); i++)
+			if (mSocketList[i].bufferAllocated == true)
+			{
+				free(mSocketList[i].receiveBuffer);
+				free(mSocketList[i].sendBuffer);	
+				free(mSocketList[i].sizeOfSentSegments);	
+			}
+		mSocketList.clear();
+		mblockingAcceptCalls.clear();
+		mblockingConnectCalls.clear();
+	}
+
+	void TCPAssignment::systemCallback(UUID syscallUUID, int pid, const SystemCallParameter& param)
+	{
+		switch(param.syscallNumber)
+		{
+		case SOCKET:
+			//this->syscall_socket(syscallUUID, pid, param.param1_int, param.param2_int);
+			{
+				// Allocate a new file descriptor
+				int newFd = createFileDescriptor (pid);
+
+				// Create a new socketInfo struct 
+				struct socketInfo newSocketInfo;
+				newSocketInfo.fd = newFd;
+				newSocketInfo.pid = pid;
+				newSocketInfo.addrNotExplicitlySpecified = true;	
+				newSocketInfo.socketState = S_CLOSED;
+				newSocketInfo.nbPendingCons = 0;
+				newSocketInfo.backlogNb = 0;
+
+				// Add this new socketInfo struct to the global list
+				mSocketList.push_back(newSocketInfo);
+
+				// Unblock the system call with a return value (which is just the new file descriptor)
+				returnSystemCall(syscallUUID, newFd);
+			}
+			break;
+		case CLOSE:
+			//this->syscall_close(syscallUUID, pid, param.param1_int);
+			{
+				// Get the file descriptor of the socket to be closed
+				int FdToBeClosed = param.param1_int;
+				SocketStates aState = S_CLOSED;
+
+				int mIndex = findIndex(FdToBeClosed, pid, S_CLOSED);
+
+				if (mIndex >= 0) {
+					removeFileDescriptor(pid, FdToBeClosed);
+					returnSystemCall(syscallUUID, removeSocketInfo(FdToBeClosed, pid,aState));
+				} 
+				else {	
+						int mIndex = findIndex(FdToBeClosed, pid, S_CLOSE_WAIT);
+
+						if (mIndex < 0)
+							mIndex = findIndex(FdToBeClosed, pid, S_ESTABLISHED);	
+
+						if (mIndex >= 0) {
+							if (mSocketList[mIndex].socketState == S_CLOSE_WAIT)
+								mSocketList[mIndex].socketState = S_LAST_ACK;
+							else if (mSocketList[mIndex].socketState == S_ESTABLISHED)
+								mSocketList[mIndex].socketState = S_FIN_WAIT_1;
+
+							// SENDING FIN
+							TCPHeader myHeader = getFINSegmentHeader(mSocketList[mIndex]);
+							uint32_t Offset = 14+12;
+							uint32_t src_ip = getIP(& (mSocketList[mIndex].sourceAddr)) ;
+							uint32_t dest_ip = getIP(& (mSocketList[mIndex].destAddr));
+					
+							Packet* myFinPacket = this->allocatePacket(14 + 20 + 20); 	// 20 bytes for IP-header, 20 bytes for TCP-header
+							myFinPacket->writeData(Offset, &src_ip, 4);
+							myFinPacket->writeData(Offset + 4, &dest_ip, 4);
+							myFinPacket->writeData(Offset + 8, &myHeader, 20);												
+							this->sendPacket ("IPv4", myFinPacket);
+
+							returnSystemCall(syscallUUID, 0);
+						}
+						else {	
+							mIndex = findIndex(FdToBeClosed, pid, S_LISTEN);
+							if (mIndex >= 0) {
+								bool allGood = false;
+								int originalMindex = mIndex;
+
+								for (mIndex = 0; mIndex < (int) mSocketList.size(); mIndex++) {
+									if (mSocketList[mIndex].socketState == S_SYN_RCVD && mSocketList[originalMindex].pid == mSocketList[mIndex].pid && mSocketList[originalMindex].fd == mSocketList[mIndex].fd) {
+										mSocketList[mIndex].socketState = S_FIN_WAIT_1;
+										// Let's send a FIN
+										// SENDING FIN
+										struct TCPHeader mHeader = getFINSegmentHeader(mSocketList[mIndex]);
+
+										uint32_t Offset = 14+12;
+										uint32_t src_ip = getIP(& (mSocketList[mIndex].sourceAddr)) ;
+										uint32_t dest_ip = getIP(& (mSocketList[mIndex].destAddr));
+										
+										Packet* mySynPacket = this->allocatePacket(14 + 20 + 20); 	// 20 bytes for IP-header, 20 bytes for TCP-header
+										mySynPacket->writeData(Offset, &src_ip, 4);
+										mySynPacket->writeData(Offset + 4, &dest_ip, 4);
+										mySynPacket->writeData(Offset + 8, &mHeader, 20);	
+										this->sendPacket ("IPv4", mySynPacket);
+										allGood = true;
+									}
+								}
+
+								if (removeSocketInfo(FdToBeClosed, pid, S_SYN_SENT) > -1)
+									allGood = true;
+							
+								if (removeSocketInfo(FdToBeClosed, pid, S_LISTEN) > -1)
+									allGood = true;
+
+								if (allGood)
+									returnSystemCall(syscallUUID, 0);
+								else
+									returnSystemCall(syscallUUID, -1);
+							}
+							else
+								returnSystemCall(syscallUUID, -1);
+						}
+						
+
+					}
+			}
+			break;
+		case READ:
+			//this->syscall_read(syscallUUID, pid, param.param1_int, param.param2_ptr, param.param3_int);
+			{
+				int readFd = param.param1_int;
+				char * userBuffer = (char *) param.param2_ptr;
+				int maxLength = param.param3_int;
+				bool isBlocked = true;
+
+				int mIndex = findIndex(readFd, pid, S_ESTABLISHED);
+
+				if (mIndex < 0) {
+					returnSystemCall(syscallUUID, -1);
+				}
+				else {
+					if (mSocketList[mIndex].bufferAllocated == false) {
+						mSocketList[mIndex].bufferAllocated = true;
+						mSocketList[mIndex].congestion_window = getMSS();
+						mSocketList[mIndex].expected_seqnum = mSocketList[mIndex].acknowledge_nb;
+						mSocketList[mIndex].receive_base = mSocketList[mIndex].acknowledge_nb;
+						mSocketList[mIndex].send_base  = mSocketList[mIndex].sequence_nb ;
+						mSocketList[mIndex].receiveBuffer = (char *) malloc(RECEIVE_BUFFER_SIZE);
+						mSocketList[mIndex].sizeOfSentSegments = (int *) malloc(RECEIVE_BUFFER_SIZE * 4);
+						mSocketList[mIndex].sendBuffer = (char *) malloc(SEND_BUFFER_SIZE);		
+						mSocketList[mIndex].send_buffer_free_space = SEND_BUFFER_SIZE;
+						mSocketList[mIndex].recv_buffer_free_space = RECEIVE_BUFFER_SIZE;
+						mSocketList[mIndex].isTimerRunning = false;	
+					}
+					else {
+						int data_in_recv_buffer = RECEIVE_BUFFER_SIZE - mSocketList[mIndex].recv_buffer_free_space;
+						if (data_in_recv_buffer > 0) {
+							isBlocked = false;
+							int amountDataToRead = min (data_in_recv_buffer, maxLength);
+							for (int i = 0; i < amountDataToRead; i++) {
+								userBuffer[i] = mSocketList[mIndex].receiveBuffer[mSocketList[mIndex].recv_base_index];
+								mSocketList[mIndex].recv_base_index = (mSocketList[mIndex].recv_base_index + 1) % RECEIVE_BUFFER_SIZE;
+								mSocketList[mIndex].receive_base ++;
+							}
+							
+							mSocketList[mIndex].recv_buffer_free_space += amountDataToRead;
+							returnSystemCall (syscallUUID, amountDataToRead);
+							mSocketList[mIndex].hasBlockingReadCall = false;
+						}
+					}
+					if (isBlocked) {
+						mSocketList[mIndex].hasBlockingReadCall = true;
+						mSocketList[mIndex].blockingReadCallUUID = syscallUUID;
+						mSocketList[mIndex].tempUserMaxLength = maxLength;
+						mSocketList[mIndex].userBuffer = userBuffer;
+					}
+				}
+			}
+			break;
+		case WRITE:
+			//this->syscall_write(syscallUUID, pid, param.param1_int, param.param2_ptr, param.param3_int);
+			{ 
+				int writeFd = param.param1_int;
+				char * userData = (char *) param.param2_ptr;
+				int userDataLength = param.param3_int;
+				int mIndex = findIndex(writeFd, pid, S_ESTABLISHED);
+				if (mIndex < 0) 
+					returnSystemCall (syscallUUID, -1);
+				else {
+					int currentMSS = getMSS();
+					int dataSizeThisSegment;
+					char tempBuffer[currentMSS];
+					int amountToBeSent;
+					Time RTO;
+
+					if (mSocketList[mIndex].bufferAllocated == false) {
+						mSocketList[mIndex].bufferAllocated = true;
+						mSocketList[mIndex].congestion_window = currentMSS;
+						mSocketList[mIndex].expected_seqnum = mSocketList[mIndex].acknowledge_nb;
+						mSocketList[mIndex].receive_base = mSocketList[mIndex].acknowledge_nb;
+						mSocketList[mIndex].send_base  = mSocketList[mIndex].sequence_nb ;
+						mSocketList[mIndex].receiveBuffer = (char *) malloc(RECEIVE_BUFFER_SIZE);
+						mSocketList[mIndex].sizeOfSentSegments = (int *) malloc(RECEIVE_BUFFER_SIZE * 4);
+						mSocketList[mIndex].sendBuffer = (char *) malloc(SEND_BUFFER_SIZE);		
+						mSocketList[mIndex].send_buffer_free_space = SEND_BUFFER_SIZE;
+						mSocketList[mIndex].recv_buffer_free_space = RECEIVE_BUFFER_SIZE;
+						mSocketList[mIndex].isTimerRunning = false;
+						RTO = calculateRTO(mIndex, TCP_DEFAULT_RTT, 0);
+					}
+
+					struct TCPHeader mHeader;
+					uint32_t src_ip = getIP(& (mSocketList[mIndex].sourceAddr)) ;
+					uint32_t dest_ip = getIP(& (mSocketList[mIndex].destAddr));
+					mHeader.src_port =  getPortNumber(& (mSocketList[mIndex].sourceAddr));
+					mHeader.dest_port = getPortNumber(& (mSocketList[mIndex].destAddr));
+					mHeader.sequence_nb = htonl(mSocketList[mIndex].sequence_nb);
+					mHeader.acknowledge_nb = htonl(mSocketList[mIndex].acknowledge_nb);
+					mHeader.rcwn = htons(mSocketList[mIndex].recv_buffer_free_space);
+					mHeader.flag_field = 0x10;
+					mHeader.headerLength = 0x50;	
+					mHeader.urgentDataPointer = 0;
+					bool sentSth = false;
+					amountToBeSent = userDataLength;
+					while (true) {
+
+						int nbOutstandingData = mSocketList[mIndex].sequence_nb - mSocketList[mIndex].send_base;
+						
+						dataSizeThisSegment = min(currentMSS, userDataLength , min(mSocketList[mIndex].flow_window, mSocketList[mIndex].congestion_window) - nbOutstandingData);
+						
+						if (dataSizeThisSegment <= 0)
+							break;
+
+						mSocketList[mIndex].sizeOfSentSegments[mSocketList[mIndex].send_next_sent_index] = dataSizeThisSegment;
+
+						sentSth = true; 
+
+						for (int i = 0; i < dataSizeThisSegment; i++) {
+							tempBuffer[i] = userData[amountToBeSent - userDataLength];
+							mSocketList[mIndex].sendBuffer[mSocketList[mIndex].send_next_sent_index] = userData[amountToBeSent - userDataLength];
+							mSocketList[mIndex].send_next_sent_index = (mSocketList[mIndex].send_next_sent_index + 1) % SEND_BUFFER_SIZE;
+							userDataLength -= 1;
+						}
+						
+						mSocketList[mIndex].send_buffer_free_space -= dataSizeThisSegment;
+
+					
+						mHeader.checksum = calculateTCPCheckSum(mHeader, src_ip, dest_ip, tempBuffer, dataSizeThisSegment);
+						Packet* myPacket = this->allocatePacket(14 + 20 + 20 + dataSizeThisSegment);
+						myPacket->writeData(14+12, &src_ip, 4);
+						myPacket->writeData(14+12 + 4, &dest_ip, 4);
+						myPacket->writeData(14+12 + 8, &mHeader, 20); 
+						myPacket->writeData(14+12 + 28, tempBuffer ,dataSizeThisSegment);							
+						this->sendPacket ("IPv4", myPacket);
+						mSocketList[mIndex].sentSomeData = true;
+						mSocketList[mIndex].sequence_nb = mSocketList[mIndex].sequence_nb + dataSizeThisSegment;
+						mHeader.sequence_nb = htonl(mSocketList[mIndex].sequence_nb);
+					}
+					if (sentSth)
+ 						mSocketList[mIndex].timeWhenRTTStart = this->getHost()->getNetworkSystem()->getCurrentTime ();
+ 					if (sentSth && mSocketList[mIndex].isTimerRunning == false) {
+						mSocketList[mIndex].mTimerMsgReliableTransfer = (struct TimerMessage*) malloc(sizeof(struct TimerMessage));
+						mSocketList[mIndex].mTimerMsgReliableTransfer->pid = mSocketList[mIndex].pid;
+						mSocketList[mIndex].mTimerMsgReliableTransfer->fd  = mSocketList[mIndex].fd;
+						mSocketList[mIndex].mTimerMsgReliableTransfer->timerForReliableTransfer = true;
+						UUID tempId = addTimer(mSocketList[mIndex].mTimerMsgReliableTransfer,TimeUtil::makeTime(RTO, TimeUtil:: NSEC));	
+						mSocketList[mIndex].mTimerMsgReliableTransfer->id = tempId;		
+						mSocketList[mIndex].mTimerMsgReliableTransfer->startFromTime = this->getHost()->getNetworkSystem()->getCurrentTime ();
+						mSocketList[mIndex].isTimerRunning = true;
+						mSocketList[mIndex].timerForReliableTransferUUID = tempId;
+					}
+					
+					if (userDataLength == 0) {
+						mSocketList[mIndex].hasBlockingWriteCall = false;
+						returnSystemCall(syscallUUID, amountToBeSent);
+					}
+					else {
+						mSocketList[mIndex].blockingWriteCallUUID = syscallUUID;
+						mSocketList[mIndex].hasBlockingWriteCall = true;	
+						mSocketList[mIndex].tempUserDataLength = userDataLength;
+						mSocketList[mIndex].tempAmountToBeSent = amountToBeSent;
+						mSocketList[mIndex].tempUserDataPointer = userData;
+					}
+				}
+			}		
+			break;
+		case CONNECT:
+			//this->syscall_connect(syscallUUID, pid, param.param1_int,
+			//		static_cast<struct sockaddr*>(param.param2_ptr), (socklen_t)param.param3_int);
+			{
+
+				int ConnectFD = param.param1_int;
+				struct blockingConnectCall tempBlockingCall;
+
+				int tempIndex = findIndex(ConnectFD, pid , S_CLOSED);
+				if (tempIndex < 0)
+					tempIndex = findIndex(ConnectFD, pid , S_LISTEN);
+
+				if (tempIndex < 0)
+					returnSystemCall (syscallUUID, -1);
+				else
+				{			
+					mSocketList[tempIndex].socketState = S_SYN_SENT;
+					mSocketList[tempIndex].destAddr = *((sockaddr_in *) param.param2_ptr);
+					mSocketList[tempIndex].sequence_nb = rand();
+					if (mSocketList[tempIndex].addrNotExplicitlySpecified ) {
+						mSocketList[tempIndex].addrNotExplicitlySpecified = true;
+						struct sockaddr_in tempAddr;
+						socklen_t len = sizeof(tempAddr);
+						memset(&tempAddr, 0, len);
+						tempAddr.sin_family = AF_INET;
+						tempAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+						while (true) {
+							tempAddr.sin_port = htons(rand() % 65536) + 1;
+							if (isThereConflict(getIP(&tempAddr), getPortNumber(&tempAddr),-1)==false)
+								break;
+						}
+						uint8_t * ip_addr;
+						ip_addr = (uint8_t *) &mSocketList[tempIndex].destAddr.sin_addr.s_addr;
+						this->getHost()->getIPAddr((uint8_t *) &tempAddr.sin_addr.s_addr , this->getHost()->getRoutingTable(ip_addr));
+						mSocketList[tempIndex].sourceAddr = tempAddr; 
+					}	
+					else
+						mSocketList[tempIndex].sourceAddr = mSocketList[tempIndex].sourceAddr;
+
+					struct socketInfo newSocketInfo = mSocketList[tempIndex];
+					tempBlockingCall.pid = mSocketList[tempIndex].pid;
+					tempBlockingCall.fd =  mSocketList[tempIndex].fd;
+					tempBlockingCall.blockingCallUID = syscallUUID; 
+					mblockingConnectCalls.push_back(tempBlockingCall);
+
+					TCPHeader myHeader;
+
+					uint32_t Offset = 14+12;
+					uint32_t src_ip = getIP(& (newSocketInfo.sourceAddr)) ;
+					uint32_t dest_ip = getIP(& (newSocketInfo.destAddr));
+					myHeader.src_port = getPortNumber(& (newSocketInfo.sourceAddr));
+					myHeader.dest_port = getPortNumber(& (newSocketInfo.destAddr));
+					myHeader.sequence_nb = htonl(newSocketInfo.sequence_nb);
+					myHeader.acknowledge_nb = 0;
+					myHeader.headerLength = 0x50;
+					myHeader.flag_field = 0x02;
+					myHeader.rcwn = htons(51200);
+					myHeader.checksum = calculateTCPCheckSum(myHeader, src_ip, dest_ip);
+					
+					Packet* mySynPacket = this->allocatePacket(14 + 20 + 20); 	// 20 bytes for IP-header, 20 bytes for TCP-header
+					
+					mySynPacket->writeData(Offset, &src_ip, 4);
+					mySynPacket->writeData(Offset + 4, &dest_ip, 4);
+					mySynPacket->writeData(Offset + 8, &myHeader, 20);
+					this->sendPacket ("IPv4", mySynPacket);
+				}
+
+			}
+			break;
+		case LISTEN:
+			//this->syscall_listen(syscallUUID, pid, param.param1_int, param.param2_int);
+			{
+			
+				int ListenFD = param.param1_int;
+				int backlog  = param.param2_int;
+				int tempIndex = findIndex(ListenFD, pid, S_CLOSED);
+				if (tempIndex < 0)
+					returnSystemCall(syscallUUID, -1);
+				else {
+					mSocketList[tempIndex].socketState = S_LISTEN;
+					mSocketList[tempIndex].backlogNb   = backlog;
+					returnSystemCall(syscallUUID, 0);
+				}
+			}
+			break;
+		case ACCEPT:
+			//this->syscall_accept(syscallUUID, pid, param.param1_int,
+			//		static_cast<struct sockaddr*>(param.param2_ptr),
+			//		static_cast<socklen_t*>(param.param3_ptr));
+			{
+				int ACCEPTfd = param.param1_int;
+				int tempIndex1 = -1;
+				int returnValue = -1;
+				struct blockingAcceptCall tempBlockingCall;
+
+
+				tempIndex1 = findIndex(ACCEPTfd, pid, S_ESTABLISHED);
+				if (tempIndex1 > -1) {
+					mSocketList[tempIndex1].fd = createFileDescriptor (pid);
+					mSocketList[tempIndex1].establishedAndAccepted = true;
+					*((sockaddr_in *) param.param2_ptr) = mSocketList[tempIndex1].destAddr;	
+					*((int *) param.param3_ptr) = sizeof (mSocketList[tempIndex1].destAddr);
+					returnValue = mSocketList[tempIndex1].fd;
+					returnSystemCall(syscallUUID, returnValue);
+				}
+				else {
+					tempIndex1 = findIndex(ACCEPTfd, pid, S_CLOSE_WAIT);
+					if (tempIndex1 > -1 && mSocketList[tempIndex1].establishedAndAccepted == false) {
+						mSocketList[tempIndex1].fd = createFileDescriptor (pid);
+						mSocketList[tempIndex1].establishedAndAccepted = true;
+						*((sockaddr_in *) param.param2_ptr) = mSocketList[tempIndex1].destAddr;	
+						*((int *) param.param3_ptr) = sizeof (mSocketList[tempIndex1].destAddr);
+						returnValue = mSocketList[tempIndex1].fd;
+						returnSystemCall(syscallUUID, returnValue);
+					}
+					else  {
+						tempIndex1 = findIndex(ACCEPTfd, pid, S_LISTEN);
+						if (tempIndex1 < 0) 
+							returnSystemCall(syscallUUID, -1);
+						else {
+							tempBlockingCall.pid = mSocketList[tempIndex1].pid;
+							tempBlockingCall.fd = mSocketList[tempIndex1].fd;
+							tempBlockingCall.blockingCallUID = syscallUUID; 
+							tempBlockingCall.param = param;
+							mblockingAcceptCalls.push_back(tempBlockingCall);
+						}
+					}
+				}
+			 
+				
+			}
+			break;
+		case BIND:
+			//this->syscall_bind(syscallUUID, pid, param.param1_int,
+			//		static_cast<struct sockaddr *>(param.param2_ptr),
+			//		(socklen_t) param.param3_int);
+			{
+				// Get the file descriptor of the socket
+				int FdForBinding = param.param1_int;
+				
+				int mIndex = findIndex(FdForBinding, pid, S_CLOSED);
+		
+
+				if (mIndex < 0)
+					returnSystemCall(syscallUUID, -1);	
+				else {
+
+					u_short inputPort = getPortNumber((sockaddr_in *) param.param2_ptr);
+					unsigned long inputIpAddr = getIP((sockaddr_in *) param.param2_ptr);
+					bool hasConflict = isThereConflict(inputIpAddr, inputPort, mIndex);
+
+					if (hasConflict) 
+						returnSystemCall(syscallUUID, -1);
+					else {
+						if (mSocketList[mIndex].addrNotExplicitlySpecified) {
+							mSocketList[mIndex].addrNotExplicitlySpecified = false;
+							mSocketList[mIndex].sourceAddr = *((sockaddr_in *) param.param2_ptr);
+							returnSystemCall(syscallUUID,  0);		
+						}
+						else
+						{
+							u_short tempPort;
+							unsigned long tempIpAddr;
+							tempPort = getPortNumber(&mSocketList[mIndex].sourceAddr);
+							tempIpAddr = getIP(&mSocketList[mIndex].sourceAddr);
+
+							if (isSameAddr(inputIpAddr, inputPort, tempIpAddr, tempPort))
+								returnSystemCall(syscallUUID,  0);	
+							else
+								returnSystemCall(syscallUUID,  -1);	
+						}
+					}
+
+				}
+
+			}		
+			break;
+		case GETSOCKNAME:
+			//this->syscall_getsockname(syscallUUID, pid, param.param1_int,
+			//		static_cast<struct sockaddr *>(param.param2_ptr),
+			//		static_cast<socklen_t*>(param.param3_ptr));
+			{
+				
+				// Get the file descriptor of the socket
+				int FdToBeConsidered = param.param1_int;
+			
+				int mIndex = findIndex(FdToBeConsidered, pid, S_ANY_STATE);
+
+				if (mIndex < 0) 
+					returnSystemCall(syscallUUID, -1);
+				else
+				{
+					*((sockaddr_in *) param.param2_ptr) = mSocketList[mIndex].sourceAddr;	
+					*((int *) param.param3_ptr) = sizeof (mSocketList[mIndex].sourceAddr);
+					returnSystemCall(syscallUUID, 0);
+				}	
+
+			}
+
+			break;
+		case GETPEERNAME:
+			//this->syscall_getpeername(syscallUUID, pid, param.param1_int,
+			//		static_cast<struct sockaddr *>(param.param2_ptr),
+			//		static_cast<socklen_t*>(param.param3_ptr));
+
+			{	
+				// Get the file descriptor of the socket
+				int FdToBeConsidered = param.param1_int;
+			
+				int mIndex = findIndex(FdToBeConsidered, pid, S_ESTABLISHED);
+				if (mIndex < 0)
+					mIndex = findIndex(FdToBeConsidered, pid, S_CLOSE_WAIT);
+				
+				if (mIndex < 0) 
+					returnSystemCall(syscallUUID, -1);
+				else
+				{
+					*((sockaddr_in *) param.param2_ptr) = mSocketList[mIndex].destAddr;	
+					*((int *) param.param3_ptr) = sizeof (mSocketList[mIndex].destAddr);
+					returnSystemCall(syscallUUID, 0);
+				}	
+			}
+			break;
+		default:
+			assert(0);
+		}
+	}
+
+	void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
+	{
+		struct TCPHeader newHeader, tempHeader;
+		uint32_t Offset = 14+12;	
+		uint32_t src_ip[1];
+		uint32_t dest_ip[1];
+		uint16_t total_length;
+		uint32_t sequence_nb;
+		uint32_t acknowledge_nb;
+		uint8_t flag_field[1], tempFlagField[1];
+		bool synBit = false, ackBit = false, finBit = false;
+
+		packet->readData(14+2, &total_length, 2);
+		total_length = ntohs(total_length);
+		
+		packet->readData(Offset, src_ip, 4);
+		Offset = Offset + 4;
+
+		packet->readData(Offset, dest_ip, 4);
+		Offset = Offset + 4;
+
+		packet->readData(Offset, &newHeader, 20);
+	
+	
+		sequence_nb = ntohl(newHeader.sequence_nb);
+		acknowledge_nb = ntohl(newHeader.acknowledge_nb);	
+		flag_field[0] = newHeader.flag_field;
+		
+		Offset = Offset + 14;
+		
+		// DO NOT CHANGE Offset value from now (or there will be some bugs)
+
+		tempFlagField[0] = flag_field[0];
+		if (flag_field[0] & 1)
+			finBit = true;
+		flag_field[0] >>=1; 
+
+		if (flag_field[0] & 1)
+			synBit = true;
+		flag_field[0] >>=1; 
+		flag_field[0] >>=1; 
+		flag_field[0] >>=1;
+
+		if (flag_field[0] & 1)
+			ackBit = true;
+		flag_field[0] = tempFlagField[0];
+
+		if (finBit) {
+			bool handled = false;
+			for (int i = 0; i < (int) mSocketList.size(); i++) 
+				if (mSocketList[i].socketState == S_ESTABLISHED) {
+					if (mappedToSocket(src_ip[0], newHeader.src_port , dest_ip[0], newHeader.dest_port, mSocketList[i])) {					
+						// Alright. The other side wants to terminate the connection
+						// Let's send an ACK
+						tempHeader = newHeader;
+
+						tempHeader.dest_port = newHeader.src_port;
+						tempHeader.src_port = newHeader.dest_port;
+						tempHeader.flag_field = 0x10;
+		
+						acknowledge_nb = sequence_nb +1;
+						mSocketList[i].acknowledge_nb = acknowledge_nb;
+					
+						tempHeader.acknowledge_nb = htonl(acknowledge_nb);
+						tempHeader.sequence_nb = htonl(mSocketList[i].sequence_nb);						
+						tempHeader.checksum = calculateTCPCheckSum(tempHeader, dest_ip[0], src_ip[0]);
+						
+						Packet* myPacket = this->clonePacket(packet);					
+						myPacket->writeData(14+12, dest_ip, 4);
+						myPacket->writeData(14+16, src_ip,  4);
+						myPacket->writeData(14+20, &tempHeader, 20);
+						this->sendPacket ("IPv4", myPacket);
+						handled = true;
+						mSocketList[i].socketState = S_CLOSE_WAIT;
+						
+						// Unblock appropriate read and write call
+						if (mSocketList[i].hasBlockingReadCall) {
+							mSocketList[i].hasBlockingReadCall = false;
+							returnSystemCall(mSocketList[i].blockingReadCallUUID, 0);
+						}
+
+
+						break;
+					}
+				}
+
+			if (handled == false) {
+				for (int i = 0; i < (int) mSocketList.size(); i++) 
+					if (mSocketList[i].socketState == S_FIN_WAIT_1 || mSocketList[i].socketState == S_FIN_WAIT_2) {
+						if (mappedToSocket (src_ip[0], newHeader.src_port, dest_ip[0], newHeader.dest_port, mSocketList[i])) {
+							// Send an ACK
+							tempHeader = newHeader;
+							tempHeader.dest_port = newHeader.src_port;
+							tempHeader.src_port  = newHeader.dest_port;
+							tempHeader.flag_field = 0x10;	// Set the ACK bit only
+							
+							// Assume this FIN segment has no application-layer data (this assumption is not true later)
+							acknowledge_nb = ntohl(newHeader.sequence_nb) + 1;
+							sequence_nb = mSocketList[i].sequence_nb + 1;
+							mSocketList[i].acknowledge_nb = acknowledge_nb;
+							mSocketList[i].sequence_nb = sequence_nb;
+						
+							tempHeader.acknowledge_nb = htonl(acknowledge_nb);
+							tempHeader.sequence_nb = htonl(sequence_nb);
+							tempHeader.checksum = calculateTCPCheckSum(tempHeader, src_ip[0], dest_ip[0]);
+
+							Packet* myPacket = this->clonePacket(packet);
+							myPacket->writeData(14+12, dest_ip, 4);
+							myPacket->writeData(14+16, src_ip,  4);
+							myPacket->writeData(14+20, &tempHeader, 20);							
+							this->sendPacket ("IPv4", myPacket);
+
+							if (mSocketList[i].socketState == S_FIN_WAIT_1)
+								mSocketList[i].socketState = S_CLOSING;
+							else if (mSocketList[i].socketState == S_FIN_WAIT_2) {
+								mSocketList[i].socketState = S_TIME_WAIT;
+								
+								struct TimerMessage* message = (struct TimerMessage*) malloc(sizeof(struct TimerMessage));
+								message->pid = mSocketList[i].pid;
+								message->fd  = mSocketList[i].fd;
+								UUID tempId = addTimer(message, TCP_TIME_WAIT);	
+								message->id = tempId;	
+								message->startFromTime = this->getHost()->getNetworkSystem()->getCurrentTime ();
+								message->timerForReliableTransfer = false;						
+							}
+							handled = true;
+						}				
+				}
+			}
+		}
+		else if (synBit && ackBit) {				// Has received a SYNACK segment
+			int rsIndex = -1;
+			u_short tempPort;
+			unsigned long tempIpAddr;
+			for (int i = 0; i < (int) mSocketList.size(); i++) 
+				if (mSocketList[i].socketState == S_SYN_SENT ) {
+					tempPort = getPortNumber(&mSocketList[i].sourceAddr);
+					tempIpAddr = getIP(&mSocketList[i].sourceAddr);
+					if (isSameAddr(dest_ip[0], newHeader.dest_port, tempIpAddr, tempPort) && mSocketList[i].sequence_nb + 1 == acknowledge_nb) {
+						rsIndex = i; 
+						break;
+				}
+			}
+
+			if (rsIndex >= 0) {
+
+				// Just need to send back an ACK
+				int index = rsIndex;
+				
+				mSocketList[rsIndex].sequence_nb = ntohl(newHeader.acknowledge_nb);
+				mSocketList[rsIndex].acknowledge_nb = ntohl(newHeader.sequence_nb) + 1;
+				
+				tempHeader = newHeader;
+				tempHeader.dest_port = newHeader.src_port;
+				tempHeader.src_port = newHeader.dest_port;
+				tempHeader.flag_field = 0x10; 
+				tempHeader.acknowledge_nb = htonl(mSocketList[rsIndex].acknowledge_nb);
+				tempHeader.sequence_nb = htonl(mSocketList[rsIndex].sequence_nb);
+				tempHeader.checksum = calculateTCPCheckSum(tempHeader, src_ip[0], dest_ip[0]);
+				
+				Packet* myPacket = this->clonePacket(packet);
+				myPacket->writeData(14+12, dest_ip, 4);
+				myPacket->writeData(14+16, src_ip,  4);
+				myPacket->writeData(14+20, &tempHeader, 20);		
+				this->sendPacket ("IPv4", myPacket);
+
+				// Unblock the corresponding connect call
+				for (int i = 0; i < (int) mblockingConnectCalls.size(); i++) 
+					if (mblockingConnectCalls[i].fd == mSocketList[index].fd &&  mblockingConnectCalls[i].pid == mSocketList[index].pid)
+					{
+						returnSystemCall(mblockingConnectCalls[i].blockingCallUID, 0);
+						mblockingConnectCalls.erase(mblockingConnectCalls.begin() + i);
+						break;
+					}		
+				mSocketList[rsIndex].flow_window = ntohs(newHeader.rcwn);
+				mSocketList[rsIndex].socketState = S_ESTABLISHED;
+			}
+			else {
+
+			}
+		}
+		else if (synBit && !ackBit) {		// Has received a SYN segment
+			int rsIndex = -1;
+			u_short tempPort;
+			unsigned long tempIpAddr;
+			for (int i = 0; i < (int) mSocketList.size(); i++) 
+				if (mSocketList[i].socketState == S_LISTEN) {
+					tempPort = getPortNumber(&mSocketList[i].sourceAddr);
+					tempIpAddr = getIP(&mSocketList[i].sourceAddr);
+					if (isSameAddr(dest_ip[0], newHeader.dest_port, tempIpAddr, tempPort)) {
+						rsIndex = i; 
+						break;
+				}
+			}
+
+			bool is_simultaneous_open = false;
+			bool test_index = -1;
+			for (int i = 0; i < (int) mSocketList.size(); i++) 
+				if (mSocketList[i].socketState == S_SYN_SENT) {
+					if (mappedToSocket(src_ip[0], newHeader.src_port, dest_ip[0], newHeader.dest_port, mSocketList[i])) {
+						test_index = i; 
+						is_simultaneous_open = true;
+						break;
+				}
+			}
+
+			if (rsIndex == -1 && is_simultaneous_open == false) {
+
+				tempHeader = newHeader;
+				tempHeader.dest_port = newHeader.src_port;
+				tempHeader.src_port  = newHeader.dest_port;
+				tempHeader.flag_field = 0x04;	// Set the RST bit only
+
+				Packet* myPacket = this->clonePacket(packet);
+				myPacket->writeData(14+12, dest_ip, 4);
+				myPacket->writeData(14+16, src_ip,  4);
+				myPacket->writeData(14+20, &tempHeader, 20);
+				this->sendPacket ("IPv4", myPacket);
+			}
+			else if (is_simultaneous_open || mSocketList[rsIndex].nbPendingCons + 1 <= mSocketList[rsIndex].backlogNb) { 
+				tempHeader = newHeader;
+		
+				tempHeader.dest_port = newHeader.src_port;
+				tempHeader.src_port = newHeader.dest_port;
+
+				// Prepare to send a SYNACK segment
+				flag_field[0] = 0x12;	// Set the ACK and SYN bit only	
+				if (is_simultaneous_open)
+					flag_field[0] = 0x10;			
+				tempHeader.flag_field = flag_field[0];
+				
+				acknowledge_nb = sequence_nb + 1;
+				if (is_simultaneous_open) {
+					sequence_nb = mSocketList[test_index].sequence_nb + 1;
+					mSocketList[test_index].acknowledge_nb = acknowledge_nb; 
+				}
+				else 
+					sequence_nb = rand();
+				
+				tempHeader.acknowledge_nb = htonl(acknowledge_nb);
+				tempHeader.sequence_nb = htonl(sequence_nb);
+				tempHeader.checksum = calculateTCPCheckSum(tempHeader, src_ip[0], dest_ip[0]);
+
+				Packet* myPacket = this->clonePacket(packet);
+				myPacket->writeData(14+12, dest_ip, 4);
+				myPacket->writeData(14+16, src_ip,  4);
+				myPacket->writeData(14+20, &tempHeader, 20);
+				this->sendPacket ("IPv4", myPacket);
+
+				if (is_simultaneous_open)
+					mSocketList[test_index].socketState = S_SYN_RCVD;
+				else {
+					mSocketList[rsIndex].nbPendingCons ++;
+					struct socketInfo newSocketInfo;
+					newSocketInfo.fd = mSocketList[rsIndex].fd;
+					newSocketInfo.pid = mSocketList[rsIndex].pid;
+				    newSocketInfo.addrNotExplicitlySpecified = mSocketList[rsIndex].addrNotExplicitlySpecified ;
+
+					newSocketInfo.destAddr = CreateSockAddrIn(src_ip[0], newHeader.src_port); 
+				    newSocketInfo.sourceAddr = CreateSockAddrIn(dest_ip[0], newHeader.dest_port);
+				   
+				    newSocketInfo.acknowledge_nb = acknowledge_nb;
+				    newSocketInfo.sequence_nb = sequence_nb;
+				    
+					newSocketInfo.socketState = S_SYN_RCVD;
+					newSocketInfo.nbPendingCons = 0;
+					newSocketInfo.backlogNb = 0;
+					mSocketList.push_back(newSocketInfo);
+				}
+				
+			}
+
+		}
+		else if (!synBit && ackBit) {
+			// Check if an ACK for a SYNACK segment
+			int index = -1;
+			for (int i = 0; i < (int) mSocketList.size(); i++) {				
+				if (mSocketList[i].socketState == S_SYN_RCVD && mSocketList[i].sequence_nb + 1 ==  acknowledge_nb)
+				{
+					index = i;
+					break;
+				}	
+			}
+
+			
+			if (index >= 0) {
+				mSocketList[index].flow_window = ntohs(newHeader.rcwn);
+				mSocketList[index].socketState = S_ESTABLISHED;
+				mSocketList[index].establishedAndAccepted = false;
+				
+				// Assume that this ACK (maybe for the SYNACK segment) has no application-layer data (this assumption is not correct)
+ 				mSocketList[index].sequence_nb = acknowledge_nb;	
+				mSocketList[index].acknowledge_nb = sequence_nb;  // Need some consideration here				
+
+				for (int i = 0; i < (int) mSocketList.size(); i++) 
+					if (mSocketList[i].socketState == S_LISTEN && mSocketList[i].fd == mSocketList[index].fd && mSocketList[i].pid == mSocketList[index].pid)
+					{
+						mSocketList[i].nbPendingCons -= 1;
+						break;
+					}	
+
+				for (int i = 0; i < (int) mblockingAcceptCalls.size(); i++) 
+					if (mblockingAcceptCalls[i].fd == mSocketList[index].fd &&  mblockingAcceptCalls[i].pid == mSocketList[index].pid)
+					{
+						mSocketList[index].establishedAndAccepted = true;
+						mSocketList[index].fd = createFileDescriptor(mblockingAcceptCalls[i].pid);
+						*((sockaddr_in *) (mblockingAcceptCalls[i].param).param2_ptr) = mSocketList[index].destAddr;	
+						*((int *) (mblockingAcceptCalls[i].param).param3_ptr) = sizeof (mSocketList[index].destAddr);
+						returnSystemCall(mblockingAcceptCalls[i].blockingCallUID, mSocketList[index].fd);
+						mblockingAcceptCalls.erase(mblockingAcceptCalls.begin() + i);
+						mSocketList[index].socketState = S_ESTABLISHED;
+						mSocketList[index].flow_window = ntohs(newHeader.rcwn);
+						break;
+					}
+
+				for (int i = 0; i < (int) mblockingConnectCalls.size(); i++) 
+					if (mblockingConnectCalls[i].fd == mSocketList[index].fd &&  mblockingConnectCalls[i].pid == mSocketList[index].pid)
+					{
+						returnSystemCall(mblockingConnectCalls[i].blockingCallUID, 0);
+						mblockingConnectCalls.erase(mblockingConnectCalls.begin() + i);
+						mSocketList[index].socketState = S_ESTABLISHED;
+						mSocketList[index].flow_window = ntohs(newHeader.rcwn);
+						break;
+					}				
+
+			} 
+			else {
+					// Check if an ACK for a FIN segment of a socket currently in LAST_ACK
+					bool handled = false;
+
+					for (int i = 0; i < (int) mSocketList.size(); i++) 
+						if (mSocketList[i].socketState == S_LAST_ACK) {
+							if (mappedToSocket(src_ip[0], newHeader.src_port , dest_ip[0], newHeader.dest_port, mSocketList[i])) {
+								removeFileDescriptor(mSocketList[i].pid, mSocketList[i].fd);
+								mSocketList.erase(mSocketList.begin() + i);	
+								handled = true;								
+								break;
+							}
+						}
+
+					if (handled == false) {
+						// Check if an ACK for a FIN segment of a socket currently in CLOSING
+						for (int i = 0; i < (int) mSocketList.size(); i++) 
+							if (mSocketList[i].socketState == S_CLOSING) {
+
+								if (mappedToSocket(src_ip[0], newHeader.src_port, dest_ip[0], newHeader.dest_port, mSocketList[i])) {
+									mSocketList[i].socketState = S_TIME_WAIT;
+							
+									struct TimerMessage* message = (struct TimerMessage*) malloc(sizeof(struct TimerMessage));
+									message->pid = mSocketList[i].pid;
+									message->fd  = mSocketList[i].fd;
+
+									UUID tempId = addTimer(message, TCP_TIME_WAIT);	
+									message->id = tempId;
+									message->startFromTime = this->getHost()->getNetworkSystem()->getCurrentTime ();
+									message->timerForReliableTransfer = false;
+									handled = true;						
+									break;
+								}
+							}						
+
+						if (handled == false) {
+							// Check if an ACK for a FIN segment of a socket currently in FIN_WAIT_1
+							for (int i = 0; i < (int) mSocketList.size(); i++) {
+									if (mSocketList[i].sequence_nb + 1 == acknowledge_nb && mSocketList[i].socketState == S_FIN_WAIT_1) {
+										if (mappedToSocket(src_ip[0], newHeader.src_port, dest_ip[0], newHeader.dest_port, mSocketList[i])) {
+											mSocketList[i].socketState = S_FIN_WAIT_2;
+											handled = true;	
+											break;
+										}
+									}
+								}
+							}
+						
+
+						if (handled == false) {
+							// Check if an ACK for a segment (containing data) (associated with some socket in S_ESTABLISHED state)
+							int mIndex = -1;
+							for (int i = 0; i < (int) mSocketList.size(); i++)
+								if ((mSocketList[i].socketState == S_ESTABLISHED || mSocketList[i].socketState == S_CLOSE_WAIT || mSocketList[i].socketState == S_FIN_WAIT_1) && mappedToSocket(src_ip[0], newHeader.src_port, dest_ip[0], newHeader.dest_port, mSocketList[i])) {
+									if (mSocketList[i].send_base < mSocketList[i].sequence_nb && mSocketList[i].sentSomeData && mSocketList[i].send_base == ntohl(newHeader.acknowledge_nb)) {
+										mSocketList[i].nbOfDuplicateAcks++;
+										if (mSocketList[i].nbOfDuplicateAcks == 3 && mSocketList[i].congestionState != C_FASTRETRANSMIT) {
+											mSocketList[i].congestionState = C_FASTRETRANSMIT;
+											mSocketList[i].nbOfDuplicateAcks = 0;
+											mSocketList[i].congestion_window = mSocketList[i].congestion_window/2;
+											mSocketList[i].amountDataReceivedThisRTT = 0; 
+											// Retransmitting
+											mSocketList[i].timeWhenRTTStart = this->getHost()->getNetworkSystem()->getCurrentTime ();
+ 											struct TCPHeader mHeader;
+											uint32_t src_ip = getIP(& (mSocketList[i].sourceAddr)) ;
+											uint32_t dest_ip = getIP(& (mSocketList[i].destAddr));
+											mHeader.src_port =  getPortNumber(& (mSocketList[i].sourceAddr));
+											mHeader.dest_port = getPortNumber(& (mSocketList[i].destAddr));
+											mHeader.sequence_nb = htonl(mSocketList[i].send_base);
+											mHeader.acknowledge_nb = htonl(mSocketList[i].acknowledge_nb);
+											mHeader.rcwn = htons(mSocketList[i].recv_buffer_free_space);
+											mHeader.flag_field = 0x10;
+											mHeader.headerLength = 0x50;	
+											mHeader.urgentDataPointer = 0;
+
+											int dataSizeThisSegment;
+											char tempBuffer[getMSS()];
+											dataSizeThisSegment = mSocketList[i].sizeOfSentSegments[mSocketList[i].send_base_index];
+											
+											for (int j = 0; j < dataSizeThisSegment; j++)
+												tempBuffer[j] = mSocketList[i].sendBuffer[(mSocketList[i].send_base_index + j) % SEND_BUFFER_SIZE];			
+								
+											mHeader.checksum = calculateTCPCheckSum(mHeader, src_ip, dest_ip, tempBuffer, dataSizeThisSegment);
+
+											Packet* myPacket = this->allocatePacket(14 + 20 + 20 + dataSizeThisSegment);
+											myPacket->writeData(14+12, &src_ip, 4);
+											myPacket->writeData(14+12 + 4, &dest_ip, 4);
+											myPacket->writeData(14+12 + 8, &mHeader, 20); 
+											myPacket->writeData(14+12 + 28, tempBuffer ,dataSizeThisSegment);							
+											this->sendPacket ("IPv4", myPacket);
+											
+											mSocketList[i].isTimerRunning = false;
+											mSocketList[i].amountDataReceivedThisRTT = 0;
+											// Reset the timer
+											cancelTimer(mSocketList[i].timerForReliableTransferUUID);
+											free(mSocketList[i].mTimerMsgReliableTransfer);
+											struct TimerMessage* message = (struct TimerMessage*) malloc(sizeof(struct TimerMessage));
+											message->pid = mSocketList[i].pid;
+											message->fd  = mSocketList[i].fd;
+											message->timerForReliableTransfer = true;
+											UUID tempId = addTimer(message,TimeUtil::makeTime(2 * calculateRTO(i, 0, -1), TimeUtil:: NSEC));	
+											message->id = tempId;		
+											message->startFromTime = this->getHost()->getNetworkSystem()->getCurrentTime ();
+											mSocketList[i].isTimerRunning = true;
+											mSocketList[i].timerForReliableTransferUUID = tempId;
+										}
+										break;
+									}
+									else if (mSocketList[i].sentSomeData && mSocketList[i].send_base < ntohl(newHeader.acknowledge_nb)) {
+										if (mSocketList[i].congestionState == C_FASTRETRANSMIT)
+											mSocketList[i].congestionState = C_CONGESTIONAVOIDANCE;
+
+										mSocketList[i].nbOfDuplicateAcks = 0;
+										mSocketList[i].flow_window = ntohs(newHeader.rcwn);
+
+										mSocketList[i].send_buffer_free_space += (ntohl(newHeader.acknowledge_nb) - mSocketList[i].send_base);									
+										int difference = (ntohl(newHeader.acknowledge_nb) - mSocketList[i].send_base);
+
+										mSocketList[i].amountDataReceivedThisRTT += difference;
+										if (mSocketList[i].amountDataReceivedThisRTT >= mSocketList[i].congestion_window) {
+											if (mSocketList[i].congestionState == C_SLOWSTART)
+												mSocketList[i].congestion_window *= 2;
+											else if (mSocketList[i].congestionState == C_CONGESTIONAVOIDANCE)
+												mSocketList[i].congestion_window += getMSS();
+											else if (mSocketList[i].congestionState == C_FASTRETRANSMIT)
+												mSocketList[i].congestion_window += getMSS();
+											mSocketList[i].congestion_window = min (min(mSocketList[i].congestion_window, mSocketList[i].flow_window), SEND_BUFFER_SIZE);
+											mSocketList[i].amountDataReceivedThisRTT = 0;
+											Time newRtt = this->getHost()->getNetworkSystem()->getCurrentTime () - mSocketList[i].timeWhenRTTStart;
+											calculateRTO(i, newRtt, 0);
+											mSocketList[i].timeWhenRTTStart = this->getHost()->getNetworkSystem()->getCurrentTime ();
+										}
+
+										mSocketList[i].send_base_index = (mSocketList[i].send_base_index + difference) % SEND_BUFFER_SIZE;
+										mSocketList[i].send_base = ntohl(newHeader.acknowledge_nb);
+													
+																	
+										if (mSocketList[i].isTimerRunning) {
+											cancelTimer(mSocketList[i].timerForReliableTransferUUID);
+											free(mSocketList[i].mTimerMsgReliableTransfer);
+											if (mSocketList[i].sequence_nb == mSocketList[i].send_base) 
+												mSocketList[i].isTimerRunning = false;	// Turn off the timer
+											else {
+												// Reset the timer
+												mSocketList[i].mTimerMsgReliableTransfer = (struct TimerMessage*) malloc(sizeof(struct TimerMessage));
+												mSocketList[i].mTimerMsgReliableTransfer->pid = mSocketList[i].pid;
+												mSocketList[i].mTimerMsgReliableTransfer->fd  = mSocketList[i].fd;
+												mSocketList[i].mTimerMsgReliableTransfer->timerForReliableTransfer = true;
+												UUID tempId = addTimer(mSocketList[i].mTimerMsgReliableTransfer,TimeUtil::makeTime(calculateRTO(i, 0, -1), TimeUtil:: NSEC));	
+										        mSocketList[i].mTimerMsgReliableTransfer->startFromTime = this->getHost()->getNetworkSystem()->getCurrentTime ();
+												mSocketList[i].mTimerMsgReliableTransfer->id = tempId;		
+												mSocketList[i].isTimerRunning = true;
+												mSocketList[i].timerForReliableTransferUUID = tempId;
+											}
+										}
+									}
+									mIndex = i;
+									break;
+								}
+
+							if (mIndex > -1) {
+								// Is this ack also containing data ?
+								if (total_length - 40 > 0) 	{		// 20 bytes header IP + 20 bytes header TCP
+									char * receivedData = (char *) malloc(total_length - 40);
+									packet->readData (14 + 40, receivedData, total_length-40); 					
+									if (mSocketList[mIndex].bufferAllocated == false) {
+										mSocketList[mIndex].expected_seqnum = mSocketList[mIndex].acknowledge_nb;
+										mSocketList[mIndex].receive_base = mSocketList[mIndex].acknowledge_nb;
+										mSocketList[mIndex].bufferAllocated = true;
+										mSocketList[mIndex].congestion_window = getMSS() ;
+										mSocketList[mIndex].send_base  = mSocketList[mIndex].sequence_nb ;
+										mSocketList[mIndex].receiveBuffer = (char *) malloc(RECEIVE_BUFFER_SIZE);
+										mSocketList[mIndex].sizeOfSentSegments = (int *) malloc(RECEIVE_BUFFER_SIZE * 4);
+										mSocketList[mIndex].sendBuffer = (char *) malloc(SEND_BUFFER_SIZE);		
+										mSocketList[mIndex].send_buffer_free_space = SEND_BUFFER_SIZE;
+										mSocketList[mIndex].recv_buffer_free_space = RECEIVE_BUFFER_SIZE;
+										mSocketList[mIndex].isTimerRunning = false;	
+									}
+
+									bool abcd = false;
+
+									if (mSocketList[mIndex].recv_buffer_free_space >= (total_length-40) && ntohl(newHeader.sequence_nb) >= mSocketList[mIndex].expected_seqnum) {
+										for (int i = 0; i < total_length - 40; i++) {
+											mSocketList[mIndex].receiveBuffer[mSocketList[mIndex].recv_next_saved_index] = receivedData[i];
+											mSocketList[mIndex].recv_next_saved_index = (mSocketList[mIndex].recv_next_saved_index + 1) % RECEIVE_BUFFER_SIZE;
+											mSocketList[mIndex].expected_seqnum++;
+										}
+										mSocketList[mIndex].recv_buffer_free_space -= (total_length - 40);
+										mSocketList[mIndex].acknowledge_nb = mSocketList[mIndex].expected_seqnum;
+										abcd = true;
+
+										if (mSocketList[mIndex].hasBlockingReadCall) {
+											int data_in_recv_buffer = RECEIVE_BUFFER_SIZE - mSocketList[mIndex].recv_buffer_free_space;
+											if (data_in_recv_buffer > 0) {
+												int amountDataToRead = min (data_in_recv_buffer, mSocketList[mIndex].tempUserMaxLength);
+												for (int i = 0; i < amountDataToRead; i++) {
+													mSocketList[mIndex].userBuffer[i] = mSocketList[mIndex].receiveBuffer[mSocketList[mIndex].recv_base_index];
+													mSocketList[mIndex].recv_base_index = (mSocketList[mIndex].recv_base_index + 1) % RECEIVE_BUFFER_SIZE;
+													mSocketList[mIndex].receive_base ++;
+												}
+									
+												mSocketList[mIndex].recv_buffer_free_space += amountDataToRead;
+												returnSystemCall (mSocketList[mIndex].blockingReadCallUUID, amountDataToRead);
+												mSocketList[mIndex].hasBlockingReadCall = false;
+											}
+										}
+									}
+									// Send back an ACK
+
+									struct TCPHeader mHeader;
+									uint32_t src_ip = getIP(& (mSocketList[mIndex].sourceAddr)) ;
+									uint32_t dest_ip = getIP(& (mSocketList[mIndex].destAddr));
+									mHeader.src_port =  getPortNumber(& (mSocketList[mIndex].sourceAddr));
+									mHeader.dest_port = getPortNumber(& (mSocketList[mIndex].destAddr));
+									mHeader.sequence_nb = htonl(mSocketList[mIndex].sequence_nb);
+									if (abcd)
+										mHeader.acknowledge_nb = htonl(ntohl(newHeader.sequence_nb) + total_length - 40);
+									else
+										mHeader.acknowledge_nb = htonl(mSocketList[mIndex].acknowledge_nb);
+
+									mHeader.rcwn = htons(mSocketList[mIndex].recv_buffer_free_space);
+									mHeader.flag_field = 0x10;
+									mHeader.headerLength = 0x50;	
+									mHeader.urgentDataPointer = 0;
+									mHeader.checksum = calculateTCPCheckSum(mHeader, dest_ip, src_ip);
+						
+									Packet* myPacket = allocatePacket(14 + 20 + 20);					
+									myPacket->writeData(14+12, &src_ip, 4);
+									myPacket->writeData(14+16, &dest_ip,  4);
+									myPacket->writeData(14+20, &mHeader, 20);
+									this->sendPacket ("IPv4", myPacket);
+									free(receivedData); 
+								} 
+
+								if (mSocketList[mIndex].sentSomeData && mSocketList[mIndex].hasBlockingWriteCall) {
+									int currentMSS = getMSS();
+									int dataSizeThisSegment;
+									char tempBuffer[currentMSS];
+					
+									struct TCPHeader mHeader;
+									uint32_t src_ip = getIP(& (mSocketList[mIndex].sourceAddr)) ;
+									uint32_t dest_ip = getIP(& (mSocketList[mIndex].destAddr));
+								
+									mHeader.src_port =  getPortNumber(& (mSocketList[mIndex].sourceAddr));
+									mHeader.dest_port = getPortNumber(& (mSocketList[mIndex].destAddr));
+									mHeader.sequence_nb = htonl(mSocketList[mIndex].sequence_nb);
+									mHeader.acknowledge_nb = htonl(mSocketList[mIndex].acknowledge_nb);
+									mHeader.rcwn = htons(mSocketList[mIndex].recv_buffer_free_space);
+									mHeader.flag_field = 0x10;
+									mHeader.headerLength = 0x50;	
+									mHeader.urgentDataPointer = 0;
+									bool sentSth = false;
+									int amountToBeSent = mSocketList[mIndex].tempAmountToBeSent;
+									char *userData = mSocketList[mIndex].tempUserDataPointer;
+									int userDataLength = mSocketList[mIndex].tempUserDataLength;
+									while (true) {
+										int nbOutstandingData = mSocketList[mIndex].sequence_nb - mSocketList[mIndex].send_base;
+										
+										dataSizeThisSegment = min(currentMSS, userDataLength , min(mSocketList[mIndex].flow_window, mSocketList[mIndex].congestion_window) - nbOutstandingData);
+										
+										if (dataSizeThisSegment <= 0)
+											break;
+
+										sentSth = true; 
+
+										mSocketList[mIndex].sizeOfSentSegments[mSocketList[mIndex].send_next_sent_index] = dataSizeThisSegment;
+									
+										for (int i = 0; i < dataSizeThisSegment; i++) {
+											tempBuffer[i] = userData[amountToBeSent - userDataLength];
+											mSocketList[mIndex].sendBuffer[mSocketList[mIndex].send_next_sent_index] = userData[amountToBeSent - userDataLength];
+											mSocketList[mIndex].send_next_sent_index = (mSocketList[mIndex].send_next_sent_index + 1) % SEND_BUFFER_SIZE;
+											userDataLength -= 1;
+										}
+										
+										mSocketList[mIndex].send_buffer_free_space -= dataSizeThisSegment;
+
+										mHeader.checksum = calculateTCPCheckSum(mHeader, src_ip, dest_ip, tempBuffer, dataSizeThisSegment);
+										Packet* myPacket = this->allocatePacket(14 + 20 + 20 + dataSizeThisSegment);
+										myPacket->writeData(14+12, &src_ip, 4);
+										myPacket->writeData(14+12 + 4, &dest_ip, 4);
+										myPacket->writeData(14+12 + 8, &mHeader, 20); 
+										myPacket->writeData(14+12 + 28, tempBuffer ,dataSizeThisSegment);							
+										this->sendPacket ("IPv4", myPacket);
+										mSocketList[mIndex].sentSomeData = true;
+										mSocketList[mIndex].sequence_nb = mSocketList[mIndex].sequence_nb + dataSizeThisSegment;
+										mHeader.sequence_nb = htonl(mSocketList[mIndex].sequence_nb);
+									}
+										
+									
+									if (sentSth && mSocketList[mIndex].isTimerRunning == false) {
+										mSocketList[mIndex].mTimerMsgReliableTransfer = (struct TimerMessage*) malloc(sizeof(struct TimerMessage));
+										mSocketList[mIndex].mTimerMsgReliableTransfer->pid = mSocketList[mIndex].pid;
+										mSocketList[mIndex].mTimerMsgReliableTransfer->fd  = mSocketList[mIndex].fd;
+										mSocketList[mIndex].mTimerMsgReliableTransfer->timerForReliableTransfer = true;
+										UUID tempId = addTimer(mSocketList[mIndex].mTimerMsgReliableTransfer,TimeUtil::makeTime(calculateRTO(mIndex, 0, -1), TimeUtil:: NSEC));	
+										mSocketList[mIndex].mTimerMsgReliableTransfer->id = tempId;		
+										mSocketList[mIndex].mTimerMsgReliableTransfer->startFromTime = this->getHost()->getNetworkSystem()->getCurrentTime ();
+										mSocketList[mIndex].isTimerRunning = true;
+										mSocketList[mIndex].timerForReliableTransferUUID = tempId;
+									}
+
+									if (userDataLength == 0) {
+										mSocketList[mIndex].hasBlockingWriteCall = false;
+										returnSystemCall(mSocketList[mIndex].blockingWriteCallUUID , amountToBeSent);
+									}
+									else {
+										mSocketList[mIndex].hasBlockingWriteCall = true;	
+										mSocketList[mIndex].tempUserDataLength = userDataLength;
+										mSocketList[mIndex].tempUserDataPointer = userData;
+									}
+
+											
+								}
+							
+							}
+						
+						}
+					}
+
+				}
+			}
+
+		this->freePacket(packet);
+	}
+
+	void TCPAssignment::timerCallback(void* payload) {
+		struct TimerMessage* mMessage = (TimerMessage*) payload;
+		if (mMessage->timerForReliableTransfer) {
+			int mIndex = findIndex (mMessage->fd, mMessage->pid, S_ESTABLISHED);
+			if (mIndex < 0)
+				mIndex = findIndex (mMessage->fd, mMessage->pid, S_FIN_WAIT_1);
+			if (mIndex > -1) {
+				// Retransmitting
+				mSocketList[mIndex].timeWhenRTTStart = this->getHost()->getNetworkSystem()->getCurrentTime ();	
+				struct TCPHeader mHeader;
+				uint32_t src_ip = getIP(& (mSocketList[mIndex].sourceAddr)) ;
+				uint32_t dest_ip = getIP(& (mSocketList[mIndex].destAddr));
+				mHeader.src_port =  getPortNumber(& (mSocketList[mIndex].sourceAddr));
+				mHeader.dest_port = getPortNumber(& (mSocketList[mIndex].destAddr));
+				mHeader.sequence_nb = htonl(mSocketList[mIndex].send_base);
+				mHeader.acknowledge_nb = htonl(mSocketList[mIndex].acknowledge_nb);
+				mHeader.rcwn = htons(mSocketList[mIndex].recv_buffer_free_space);
+				mHeader.flag_field = 0x10;
+				mHeader.headerLength = 0x50;	
+				mHeader.urgentDataPointer = 0;
+
+				int dataSizeThisSegment;
+				char tempBuffer[getMSS()];
+				dataSizeThisSegment = mSocketList[mIndex].sizeOfSentSegments[mSocketList[mIndex].send_base_index];
+				
+				for (int i = 0; i < dataSizeThisSegment; i++)
+					tempBuffer[i] = mSocketList[mIndex].sendBuffer[(mSocketList[mIndex].send_base_index + i) % SEND_BUFFER_SIZE];			
+			
+				mHeader.checksum = calculateTCPCheckSum(mHeader, src_ip, dest_ip, tempBuffer, dataSizeThisSegment);
+
+				Packet* myPacket = this->allocatePacket(14 + 20 + 20 + dataSizeThisSegment);
+				myPacket->writeData(14+12, &src_ip, 4);
+				myPacket->writeData(14+12 + 4, &dest_ip, 4);
+				myPacket->writeData(14+12 + 8, &mHeader, 20); 
+				myPacket->writeData(14+12 + 28, tempBuffer ,dataSizeThisSegment);							
+				this->sendPacket ("IPv4", myPacket);
+			
+				mSocketList[mIndex].isTimerRunning = false;
+				mSocketList[mIndex].congestion_window = getMSS();
+				mSocketList[mIndex].amountDataReceivedThisRTT = 0;
+				if (mSocketList[mIndex].congestionState == C_SLOWSTART)
+					mSocketList[mIndex].congestionState = C_CONGESTIONAVOIDANCE;
+				else if (mSocketList[mIndex].congestionState == C_FASTRETRANSMIT)
+					mSocketList[mIndex].congestionState = C_CONGESTIONAVOIDANCE;		
+				cancelTimer (mMessage->id);			
+				free(mSocketList[mIndex].mTimerMsgReliableTransfer);
+				// Reset the timer
+				struct TimerMessage* message = (struct TimerMessage*) malloc(sizeof(struct TimerMessage));
+				message->pid = mSocketList[mIndex].pid;
+				message->fd  = mSocketList[mIndex].fd;
+				message->timerForReliableTransfer = true;
+				UUID tempId = addTimer(message,TimeUtil::makeTime(2 * calculateRTO(mIndex, 0, -1), TimeUtil:: NSEC));	
+				message->startFromTime = this->getHost()->getNetworkSystem()->getCurrentTime ();
+				message->id = tempId;		
+				mSocketList[mIndex].isTimerRunning = true;
+				mSocketList[mIndex].timerForReliableTransferUUID = tempId;
+			}
+		}
+
+
+		else {
+			removeSocketInfo(mMessage->fd, mMessage->pid, S_TIME_WAIT);	
+			removeFileDescriptor(mMessage->pid, mMessage->fd);
+			cancelTimer (mMessage->id);	
+			free(mMessage);
+		}
+
+	}
+}

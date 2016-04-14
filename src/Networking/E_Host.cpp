@@ -411,6 +411,8 @@ void Host::unregisterHostModule(std::string name)
 
 void Host::sendPacketToModule(HostModule* fromModule, std::string toModule, Packet* packet)
 {
+	/*printf("Sending packet to module \n" );
+	printf("%s\n", toModule.c_str());*/
 	HostModule* toHostModule = this->findHostModule(toModule);
 
 	if(toModule.compare("Host") == 0)
