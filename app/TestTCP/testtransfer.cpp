@@ -268,9 +268,10 @@ protected:
 
 		free(send_buffer);
 		free(recv_buffer);
-
+		FILE * pFile;
+		pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut.txt","w");
 		EXPECT_EQ(expect_size, total_size);
-
+		fclose (pFile);
 		close(client_socket);
 	}
 };

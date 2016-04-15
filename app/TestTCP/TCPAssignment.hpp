@@ -17,6 +17,7 @@
 #include <netinet/in.h>
 #include <E/E_TimerModule.hpp>
 #include <stdlib.h>     /* srand, rand */
+#include <unistd.h>
 
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -64,12 +65,11 @@ struct Socket {
 	struct TcpUniqueID tcpUniqueID;
 
 	u8* receiveBuf;
-	u32 startCanRead = 0;
-	u32 windowBase = 0;
-	u32 readyReceive;
+	u32 startCanRead = 0; //on receive buf
+	u32 windowBase = 0;   //on receive buf
+	u32 readyReceive;     //next byte I want to receive
 	u16 rwnd = RECEIVE_BUF_SIZE;
-	u16 peerWindow;
-	u32 peerNext;
+	u16 peerWindow;        
 
 	bool isWaitingRead = false;
 	int readId;
@@ -77,15 +77,16 @@ struct Socket {
 	u8* readBuf;
 
 	u8* sendBuf = NULL;
-	u32 sendBufHead = 0;
-	u32 sendBufTail = 0;
-	u32 firstSending;
-	u32 nextSend;
+	u32 sendBufHead = 0;  //on sending buf
+	u32 sendBufTail = 0;  //on sending buf
+	u32 firstSending;     //the first byte on-flight
+	u32 nextSend;         //the next byte to send
 	bool isWaitingWrite = false;
 	int writeId;
 	u32 writeLength;
 
-
+	bool isWaitingClose = false;
+	int closeId;
 };
 
 struct waitingAcceptSocket {
@@ -117,6 +118,7 @@ struct establishedSockets {
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
+	int demArrive = 0;
 	std::vector<Socket> socketList;
 	std::vector<toBeEstablishedSockets> toBeEstablishedList;
 	std::vector<establishedSockets> establishedList;
