@@ -30,13 +30,18 @@ namespace E
 static const u32 MSS = 512;
 static const u32 RECEIVE_BUF_SIZE = 51200;
 static const u32 SEND_BUF_SIZE = 51200;
+static const u32 SIMPLE_TIME_OUT = 4000000;
 struct TcpUniqueID {
-	u32 sourceIP;
-	u16 sourcePort;
-	u32 desIP;
-	u16 desPort;
+	u32 sourceIP = 0;
+	u16 sourcePort = 0;
+	u32 desIP = 0;
+	u16 desPort = 0;
 };
 
+struct TimerPayload {
+	u32 fromTime;
+	int socIndex;
+};
 
 struct TCPHeader{			
 	u16 sourcePort; 
@@ -87,6 +92,9 @@ struct Socket {
 
 	bool isWaitingClose = false;
 	int closeId;
+
+	UUID currentTimerId = 0;
+	bool isWaitingTimeout = false;
 };
 
 struct waitingAcceptSocket {
@@ -97,8 +105,10 @@ struct waitingAcceptSocket {
 	bool isWaiting = false;
 	UUID syscallUUID;
 	struct sockaddr* address;
-	socklen_t* addLength;
+	socklen_t* length;
 };
+
+
 
 struct toBeEstablishedSockets {
 	u16 sourcePort;
@@ -108,11 +118,16 @@ struct toBeEstablishedSockets {
 	std::vector<TcpUniqueID> socketList;
 };
 
+struct TcpIDAndFd {
+	TcpUniqueID tcpUniqueID;
+	int fd;
+};
+
 struct establishedSockets {
 	u16 sourcePort;
 	u32 sourceIP;
 	int pid;
-	std::vector<TcpUniqueID> socketList;
+	std::vector<TcpIDAndFd> socketList;
 };
 
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
