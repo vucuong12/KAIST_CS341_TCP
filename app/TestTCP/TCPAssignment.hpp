@@ -30,7 +30,7 @@ namespace E
 static const u32 MSS = 512;
 static const u32 RECEIVE_BUF_SIZE = 51200;
 static const u32 SEND_BUF_SIZE = 51200;
-static const u32 SIMPLE_TIME_OUT = 4000000;
+static const u32 SIMPLE_TIME_OUT = 100000000;
 struct TcpUniqueID {
 	u32 sourceIP = 0;
 	u16 sourcePort = 0;
@@ -54,6 +54,8 @@ struct TCPHeader{
 	u16 checksum;
 	u16 urgentDataPointer = 0; 				
 };
+
+enum CongestionState { C_SLOW_START, C_CONGESTION_AVOIDANCE ,C_FAST_RECOVERY};
 
 enum SocketStates { S_CLOSED, S_LISTEN, S_SYN_SENT, S_SYN_RCVD, S_ESTABLISHED, S_CLOSE_WAIT, 
 	                  S_FIN_WAIT_1, S_FIN_WAIT_2 ,S_LAST_ACK, S_CLOSING, S_TIME_WAIT, S_ANY};
@@ -95,6 +97,15 @@ struct Socket {
 
 	UUID currentTimerId = 0;
 	bool isWaitingTimeout = false;
+
+	//For congestion control
+	u32 cwnd = MSS;
+	u32 ssthresh;
+	u32 dupACKcount = 0;
+	CongestionState congestionState = C_SLOW_START;
+	bool isRetransmitted = false;
+	u32 retransmittedUpTo = 0;
+	u32 currentTimeOut = SIMPLE_TIME_OUT;
 };
 
 struct waitingAcceptSocket {
@@ -133,12 +144,16 @@ struct establishedSockets {
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
+
 	int demArrive = 0;
+	int toWrite = 0;
+	int callWrite = 0;
+	int returnWrite = 0;
 	std::vector<Socket> socketList;
 	std::vector<toBeEstablishedSockets> toBeEstablishedList;
 	std::vector<establishedSockets> establishedList;
 	std::vector<waitingAcceptSocket> waitingAcceptList;
-
+	//int demArrive = 0;
 private:
 	int findSocket(int pid, int fd, SocketStates socketState);
 	int findSocketByAddress(u16 port, u32 IP, SocketStates socketState);
@@ -147,7 +162,7 @@ private:
 	int findToBeEstablishedSockets(u16 port, u32 IP);
 	int findWaitingAcceptSocket(u16 port, u32 IP);
 	int findEstablishedSockets(u16 port, u32 IP);
-	bool tryToFreeSendingBuf(int socIndex);
+	bool tryToFreeSendingBuf(int socIndex, bool dm);
 	int tryToSendPacket(int socIndex, u8* buf, u32 length);
 
 
