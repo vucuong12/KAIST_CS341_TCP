@@ -132,7 +132,7 @@ protected:
 			{
 				struct timeval dn;
 				ret = gettimeofday(&dn, 0);
-				//EXPECT_EQ(ret, 0);
+				EXPECT_EQ(ret, 0);
 				fprintf(pFile, "Time while receiving %ld\n", dn.tv_sec);
 				int remaining = buffer_size;
 				int read_byte = 0;
@@ -148,7 +148,7 @@ protected:
 				{
 					for(int j=0; j<buffer_size - remaining; j++)
 					{
-						//EXPECT_EQ(send_buffer[j], recv_buffer[j]);
+						EXPECT_EQ(send_buffer[j], recv_buffer[j]);
 					}
 				}
 				if(read_byte < 0)

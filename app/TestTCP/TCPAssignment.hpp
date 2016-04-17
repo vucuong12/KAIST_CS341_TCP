@@ -30,7 +30,9 @@ namespace E
 static const u32 MSS = 512;
 static const u32 RECEIVE_BUF_SIZE = 51200;
 static const u32 SEND_BUF_SIZE = 51200;
-static const u32 SIMPLE_TIME_OUT = 100000000;
+static const Time SIMPLE_TIME_OUT = 1000000000;
+static const Real ALPHA = (0.125);
+	static const Real BETA = (0.25);
 struct TcpUniqueID {
 	u32 sourceIP = 0;
 	u16 sourcePort = 0;
@@ -84,10 +86,13 @@ struct Socket {
 	u8* readBuf;
 
 	u8* sendBuf = NULL;
+	int* sendTime = NULL;
+	Size* sendFrom = NULL;
 	u32 sendBufHead = 0;  //on sending buf
 	u32 sendBufTail = 0;  //on sending buf
 	u32 firstSending;     //the first byte on-flight
 	u32 nextSend;         //the next byte to send
+	bool hasSend = false;
 	bool isWaitingWrite = false;
 	int writeId;
 	u32 writeLength;
@@ -105,7 +110,10 @@ struct Socket {
 	CongestionState congestionState = C_SLOW_START;
 	bool isRetransmitted = false;
 	u32 retransmittedUpTo = 0;
-	u32 currentTimeOut = SIMPLE_TIME_OUT;
+	Time currentTimeout = SIMPLE_TIME_OUT;
+	Time lastRTT = 0;
+	Time estimatedRTT = 0;
+	Time devRTT = 0;
 };
 
 struct waitingAcceptSocket {
@@ -164,7 +172,8 @@ private:
 	int findEstablishedSockets(u16 port, u32 IP);
 	bool tryToFreeSendingBuf(int socIndex, bool dm);
 	int tryToSendPacket(int socIndex, u8* buf, u32 length);
-
+	Time calculateRTT(int socIndex);
+	Time calculateDevRTT(int socIndex);
 
 	void syscall_socket(UUID syscallUUID, int pid, int param1, int param2);
 	void syscall_bind(UUID syscallUUID, int pid, int param1, struct sockaddr* param2, socklen_t param3);

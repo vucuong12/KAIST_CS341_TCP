@@ -138,7 +138,7 @@ protected:
 				{
 					for(int j=0; j<buffer_size - remaining; j++)
 					{
-						//EXPECT_EQ(send_buffer[j], recv_buffer[j]);
+						EXPECT_EQ(send_buffer[j], recv_buffer[j]);
 					}
 				}
 				if(read_byte < 0)
@@ -254,7 +254,7 @@ protected:
 				{
 					for(int j=0; j<buffer_size - remaining; j++)
 					{
-						//EXPECT_EQ(send_buffer[j], recv_buffer[j]);
+						EXPECT_EQ(send_buffer[j], recv_buffer[j]);
 					}
 				}
 				if(read_byte < 0)
@@ -270,7 +270,7 @@ protected:
 		free(recv_buffer);
 		FILE * pFile;
 		pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut.txt","w");
-		//EXPECT_EQ(expect_size, total_size);
+		EXPECT_EQ(expect_size, total_size);
 		fclose (pFile);
 		close(client_socket);
 	}
