@@ -912,7 +912,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
  			free(socketList[socIndex].sendFrom);
  			this->removeFileDescriptor(socketList[socIndex].pid, socketList[socIndex].fd);
  			this->returnSystemCall(socketList[socIndex].closeId, 0);
- 		}//Receive FIN 
+ 		}//Receive FIN  // Receive FIN
  	} else if (SYN && !ACK){   // Receive only SYN
 		int listenSocket = findSocketByAddress(desPort, desIP, S_LISTEN);
 		int sentSynSocket = findSocketByAddress(desPort, desIP, S_SYN_SENT);
@@ -1364,21 +1364,17 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 			
 		}
 	}
-	
 }
 
 void TCPAssignment::timerCallback(void* payload)
 {
-	if (demArrive < 10){
-		//////printf("Hellow world\n");
-	}
 	struct TimerPayload* message = (struct TimerPayload*) payload;
 	int socIndex = message->socIndex;
 	Socket mySocket = socketList[socIndex];
 	//1.Deal with congestion control
 	socketList[socIndex].ssthresh = max(MSS,socketList[socIndex].cwnd / 2);       //////////////////////////////////
-	socketList[socIndex].cwnd = MSS;                //Same for all congestion states//
-	socketList[socIndex].dupACKcount = 0;           //////////////////////////////////
+	socketList[socIndex].cwnd = MSS;                                              //Same for all congestion states//
+	socketList[socIndex].dupACKcount = 0;                                         //////////////////////////////////
 
 	if (socketList[socIndex].congestionState == C_SLOW_START){
 		//Remain state
@@ -1392,15 +1388,9 @@ void TCPAssignment::timerCallback(void* payload)
 	//2. Retransmit
 	this->cancelTimer(socketList[socIndex].currentTimerId);
 	socketList[socIndex].isWaitingTimeout = false;
-	//TimerPayload* payload = (struct TimerPayload*) malloc(sizeof(struct TimerPayload));
 	message->socIndex = socIndex;
 	Time timeout = socketList[socIndex].currentTimeout * 2;
 	socketList[socIndex].currentTimeout = timeout;
-	if (demArrive < 10){
-					//printf("stop current ID timer in timeout %d", socketList[socIndex].currentTimerId);
-					//printf("start 0 timer\n");	
-
-				}
 	socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
 	socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
 	socketList[socIndex].isRetransmitted = true;
@@ -1409,5 +1399,5 @@ void TCPAssignment::timerCallback(void* payload)
 	tryToFreeSendingBuf(socIndex);
 }
 
-
 }
+//Note: timeout in addTimer
