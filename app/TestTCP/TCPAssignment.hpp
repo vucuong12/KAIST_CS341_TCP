@@ -32,7 +32,9 @@ static const u32 RECEIVE_BUF_SIZE = 51200;
 static const u32 SEND_BUF_SIZE = 51200;
 static const Time SIMPLE_TIME_OUT = 1000000000;
 static const Real ALPHA = (0.125);
-	static const Real BETA = (0.25);
+static const Real BETA = (0.25);
+static const Time TIME_WAIT = 30000000000;
+
 struct TcpUniqueID {
 	u32 sourceIP = 0;
 	u16 sourcePort = 0;
@@ -157,6 +159,7 @@ private:
 	int toWrite = 0;
 	int callWrite = 0;
 	int returnWrite = 0;
+	int socketStart = 0;
 	std::vector<Socket> socketList;
 	std::vector<toBeEstablishedSockets> toBeEstablishedList;
 	std::vector<establishedSockets> establishedList;
