@@ -69,7 +69,6 @@ struct Socket {
 	int pid;
 	int threeWayHandShake = 0;
 	int connectId;
-	bool alreadySentSYNACK = false;
 	SocketStates socketState = S_CLOSED;
 	
 	bool isAlreadyBound = false;
@@ -110,8 +109,6 @@ struct Socket {
 	u32 ssthresh;
 	u32 dupACKcount = 0;
 	CongestionState congestionState = C_SLOW_START;
-	bool isRetransmitted = false;
-	u32 retransmittedUpTo = 0;
 	Time currentTimeout = SIMPLE_TIME_OUT;
 	Time lastRTT = 0;
 	Time estimatedRTT = 0;
@@ -128,8 +125,6 @@ struct waitingAcceptSocket {
 	struct sockaddr* address;
 	socklen_t* length;
 };
-
-
 
 struct toBeEstablishedSockets {
 	u16 sourcePort;
@@ -154,11 +149,6 @@ struct establishedSockets {
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
-
-	int demArrive = 0;
-	int toWrite = 0;
-	int callWrite = 0;
-	int returnWrite = 0;
 	int socketStart = 0;
 	std::vector<Socket> socketList;
 	std::vector<toBeEstablishedSockets> toBeEstablishedList;
@@ -173,9 +163,9 @@ private:
 	int findToBeEstablishedSockets(u16 port, u32 IP);
 	int findWaitingAcceptSocket(u16 port, u32 IP);
 	int findEstablishedSockets(u16 port, u32 IP);
-	bool tryToFreeSendingBuf(int socIndex, bool dm);
+	bool tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS);
 	int tryToSendPacket(int socIndex, u8* buf, u32 length);
-	Time calculateRTT(int socIndex);
+	Time calculateRTO(int socIndex); 
 	Time calculateDevRTT(int socIndex);
 
 	void syscall_socket(UUID syscallUUID, int pid, int param1, int param2);
