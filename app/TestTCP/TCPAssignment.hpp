@@ -36,168 +36,175 @@ static const Real BETA = (0.25);
 static const Time TIME_WAIT = 30000000000;
 
 struct TcpUniqueID {
-	u32 sourceIP = 0;
-	u16 sourcePort = 0;
-	u32 desIP = 0;
-	u16 desPort = 0;
+  u32 sourceIP = 0;
+  u16 sourcePort = 0;
+  u32 desIP = 0;
+  u16 desPort = 0;
 };
 
 struct TimerPayload {
-	u32 fromTime;
-	int socIndex;
+  u32 fromTime;
+  int socIndex;
 };
 
-struct TCPHeader{			
-	u16 sourcePort; 
-	u16 desPort; 
-	u32 sequence;
-	u32 acknowledge; 
-	u8 headerLength; 	
-	u8 flag; 
-	u16 window; 
-	u16 checksum;
-	u16 urgentDataPointer = 0; 				
+struct TCPHeader{     
+  u16 sourcePort; 
+  u16 desPort; 
+  u32 sequence;
+  u32 acknowledge; 
+  u8 headerLength;  
+  u8 flag; 
+  u16 window; 
+  u16 checksum;
+  u16 urgentDataPointer = 0;        
 };
 
 enum CongestionState { C_SLOW_START, C_CONGESTION_AVOIDANCE ,C_FAST_RECOVERY};
 
 enum SocketStates { S_CLOSED, S_LISTEN, S_SYN_SENT, S_SYN_RCVD, S_ESTABLISHED, S_CLOSE_WAIT, 
-	                  S_FIN_WAIT_1, S_FIN_WAIT_2 ,S_LAST_ACK, S_CLOSING, S_TIME_WAIT, S_ANY};
+                    S_FIN_WAIT_1, S_FIN_WAIT_2 ,S_LAST_ACK, S_CLOSING, S_TIME_WAIT, S_ANY};
 
 struct Socket {
-	int fd;
-	int pid;
-	int threeWayHandShake = 0;
-	int connectId;
-	SocketStates socketState = S_CLOSED;
-	
-	bool isAlreadyBound = false;
-	struct TcpUniqueID tcpUniqueID;
+  int fd;
+  int pid;
+  int threeWayHandShake = 0;
+  int connectId;
+  SocketStates socketState = S_CLOSED;
+  
+  bool isAlreadyBound = false;
+  struct TcpUniqueID tcpUniqueID;
 
-	u8* receiveBuf;
-	u32 startCanRead = 0; //on receive buf
-	u32 windowBase = 0;   //on receive buf
-	u32 readyReceive;     //next byte I want to receive
-	u16 rwnd = RECEIVE_BUF_SIZE;
-	u16 peerWindow;        
+  u8* receiveBuf;
+  u32 startCanRead = 0; //on receive buf
+  u32 windowBase = 0;   //on receive buf
+  u32 readyReceive;     //next byte I want to receive
+  u16 rwnd = RECEIVE_BUF_SIZE;
+  u16 peerWindow;        
 
-	bool isWaitingRead = false;
-	int readId;
-	u32 readLength;
-	u8* readBuf;
+  bool isWaitingRead = false;
+  int readId;
+  u32 readLength;
+  u8* readBuf;
 
-	u8* sendBuf = NULL;
-	int* sendTime = NULL;
-	Size* sendFrom = NULL;
-	u32 sendBufHead = 0;  //on sending buf
-	u32 sendBufTail = 0;  //on sending buf
-	u32 firstSending;     //the first byte on-flight
-	u32 nextSend;         //the next byte to send
-	bool hasSend = false;
-	bool isWaitingWrite = false;
-	int writeId;
-	u32 writeLength;
+  u8* sendBuf = NULL;
+  int* sendTime = NULL;
+  Size* sendFrom = NULL;
+  u32 sendBufHead = 0;  //on sending buf
+  u32 sendBufTail = 0;  //on sending buf
+  u32 sendBufLength = 0; //on sending buf
+  u32 firstSending;     //the first byte on-flight
+  u32 nextSend;         //the next byte to send
+  bool hasSend = false;
+  bool isWaitingWrite = false;
+  int writeId;
+  u32 writeLength;
+  u8* writeBuf = NULL;
 
-	bool isWaitingClose = false;
-	int closeId;
+  bool isWaitingClose = false;
+  int closeId;
+  int closePid;
+  int closeFd;
 
-	UUID currentTimerId = 0;
-	bool isWaitingTimeout = false;
+  UUID currentTimerId = 0;
+  bool isWaitingTimeout = false;
 
-	//For congestion control
-	u32 cwnd = MSS;
-	u32 ssthresh;
-	u32 dupACKcount = 0;
-	CongestionState congestionState = C_SLOW_START;
-	Time currentTimeout = SIMPLE_TIME_OUT;
-	Time lastRTT = 0;
-	Time estimatedRTT = 0;
-	Time devRTT = 0;
+  //For congestion control
+  u32 cwnd = MSS;
+  u32 ssthresh = 1024 * 64;
+  u32 dupACKcount = 0;
+  CongestionState congestionState = C_SLOW_START;
+  Time currentTimeout = SIMPLE_TIME_OUT;
+  Time lastRTT = 0;
+  Time estimatedRTT = 0;
+  Time devRTT = 0;
 };
 
 struct waitingAcceptSocket {
-	u16 sourcePort;
-	u32 sourceIP;
-	int pid;
-	int fd;
-	bool isWaiting = false;
-	UUID syscallUUID;
-	struct sockaddr* address;
-	socklen_t* length;
+  u16 sourcePort;
+  u32 sourceIP;
+  int pid;
+  int fd;
+  bool isWaiting = false;
+  UUID syscallUUID;
+  struct sockaddr* address;
+  socklen_t* length;
 };
 
 struct toBeEstablishedSockets {
-	u16 sourcePort;
-	u32 sourceIP;
-	int pid;
-	int backlog;
-	std::vector<TcpUniqueID> socketList;
+  u16 sourcePort;
+  u32 sourceIP;
+  int pid;
+  int backlog;
+  std::vector<TcpUniqueID> socketList;
 };
 
 struct TcpIDAndFd {
-	TcpUniqueID tcpUniqueID;
-	int fd;
+  TcpUniqueID tcpUniqueID;
+  int fd;
 };
 
 struct establishedSockets {
-	u16 sourcePort;
-	u32 sourceIP;
-	int pid;
-	std::vector<TcpIDAndFd> socketList;
+  u16 sourcePort;
+  u32 sourceIP;
+  int pid;
+  std::vector<TcpIDAndFd> socketList;
 };
 
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
-	int socketStart = 0;
-	std::vector<Socket> socketList;
-	std::vector<toBeEstablishedSockets> toBeEstablishedList;
-	std::vector<establishedSockets> establishedList;
-	std::vector<waitingAcceptSocket> waitingAcceptList;
-	//int demArrive = 0;
+  int demSocket = 0;
+  int demArrive = 0;
+  int socketStart = 0;
+  std::vector<Socket> socketList;
+  std::vector<toBeEstablishedSockets> toBeEstablishedList;
+  std::vector<establishedSockets> establishedList;
+  std::vector<waitingAcceptSocket> waitingAcceptList;
+  //int demArrive = 0;
 private:
-	int findSocket(int pid, int fd, SocketStates socketState);
-	int findSocketByAddress(u16 port, u32 IP, SocketStates socketState);
-	int findSocketByTCPUniqueID(TcpUniqueID tcpUniqueID, SocketStates socketState);
-	bool checkValidBoundAddress(u16 expectedPort, u32 expectedIP, int sockFd);
-	int findToBeEstablishedSockets(u16 port, u32 IP);
-	int findWaitingAcceptSocket(u16 port, u32 IP);
-	int findEstablishedSockets(u16 port, u32 IP);
-	bool tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS);
-	int tryToSendPacket(int socIndex, u8* buf, u32 length);
-	Time calculateRTO(int socIndex); 
-	Time calculateDevRTT(int socIndex);
+  int findSocket(int pid, int fd, SocketStates socketState);
+  int findSocketByAddress(u16 port, u32 IP, SocketStates socketState);
+  int findSocketByTCPUniqueID(TcpUniqueID tcpUniqueID, SocketStates socketState);
+  bool checkValidBoundAddress(u16 expectedPort, u32 expectedIP, int sockFd);
+  int findToBeEstablishedSockets(u16 port, u32 IP);
+  int findWaitingAcceptSocket(u16 port, u32 IP);
+  int findEstablishedSockets(u16 port, u32 IP);
+  bool tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS, bool isForTimeout);
+  int tryToSendPacket(int socIndex, u8* buf, u32 length, bool isForTimeout);
+  Time calculateRTO(int socIndex); 
+  Time calculateDevRTT(int socIndex);
+  void lateClose(int socIndex, UUID syscallUUID, int pid, int fd);
 
-	void syscall_socket(UUID syscallUUID, int pid, int param1, int param2);
-	void syscall_bind(UUID syscallUUID, int pid, int param1, struct sockaddr* param2, socklen_t param3);
-	void syscall_listen(UUID syscallUUID, int pid, int fd, int backlog);
-	void syscall_connect(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t addLength);
-	void syscall_accept(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
-	void syscall_read(UUID syscallUUID, int pid, int fd, u8* buf, u32 sendingLength);
-	void syscall_write(UUID syscallUUID, int pid, int fd, u8* buf, u32 length);
-	void syscall_close(UUID syscallUUID, int pid, int fd);
-	void syscall_getsockname(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
-	void syscall_getpeername(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
+  void syscall_socket(UUID syscallUUID, int pid, int param1, int param2);
+  void syscall_bind(UUID syscallUUID, int pid, int param1, struct sockaddr* param2, socklen_t param3);
+  void syscall_listen(UUID syscallUUID, int pid, int fd, int backlog);
+  void syscall_connect(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t addLength);
+  void syscall_accept(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
+  void syscall_read(UUID syscallUUID, int pid, int fd, u8* buf, u32 sendingLength);
+  void syscall_write(UUID syscallUUID, int pid, int fd, u8* buf, u32 length);
+  void syscall_close(UUID syscallUUID, int pid, int fd);
+  void syscall_getsockname(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
+  void syscall_getpeername(UUID syscallUUID, int pid, int fd, struct sockaddr* address, socklen_t* addLength);
 private:
-	virtual void timerCallback(void* payload) final;
+  virtual void timerCallback(void* payload) final;
 
 public:
-	TCPAssignment(Host* host);
-	virtual void initialize();
-	virtual void finalize();
-	virtual ~TCPAssignment();
+  TCPAssignment(Host* host);
+  virtual void initialize();
+  virtual void finalize();
+  virtual ~TCPAssignment();
 protected:
-	virtual void systemCallback(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
-	virtual void packetArrived(std::string fromModule, Packet* packet) final;
+  virtual void systemCallback(UUID syscallUUID, int pid, const SystemCallParameter& param) final;
+  virtual void packetArrived(std::string fromModule, Packet* packet) final;
 };
 
 class TCPAssignmentProvider
 {
 private:
-	TCPAssignmentProvider() {}
-	~TCPAssignmentProvider() {}
+  TCPAssignmentProvider() {}
+  ~TCPAssignmentProvider() {}
 public:
-	static HostModule* allocate(Host* host) { return new TCPAssignment(host); }
+  static HostModule* allocate(Host* host) { return new TCPAssignment(host); }
 };
 
 }

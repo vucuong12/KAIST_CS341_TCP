@@ -40,6 +40,8 @@ protected:
 protected:
 	void E_Main()
 	{
+		FILE * pFile;
+		pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/TestTransfer_Accept.txt","w");
 		int server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		struct sockaddr_in addr;
 		socklen_t len = sizeof(addr);
@@ -138,6 +140,12 @@ protected:
 				{
 					for(int j=0; j<buffer_size - remaining; j++)
 					{
+						// if (send_buffer[j] != recv_buffer[j]){
+						// 	fprintf(pFile,"%d\n", loop);
+						// }
+						if (loop == 0){
+							fprintf(pFile, "%04x %04x\n", send_buffer[j], recv_buffer[j] );
+						}
 						EXPECT_EQ(send_buffer[j], recv_buffer[j]);
 					}
 				}
@@ -157,6 +165,7 @@ protected:
 
 		close(client_fd);
 		close(server_socket);
+		fclose(pFile);
 	}
 };
 
@@ -172,6 +181,8 @@ protected:
 protected:
 	void E_Main()
 	{
+		FILE * pFile;
+		pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/TestTransfer_Connect.txt","w");
 		long connect_time = atol(env["CONNECT_TIME"].c_str());
 		usleep(connect_time);
 
@@ -220,9 +231,13 @@ protected:
 		long total_size = 0;
 		while(!stop)
 		{
-			for(int k=0; k<buffer_size; k++)
+			for(int k=0; k<buffer_size; k++){
 				send_buffer[k] = rand_r(&seed) & 0xFF;
-
+				if (loop == 0){
+					fprintf(pFile, "%04x\n", send_buffer[k]);
+				}
+			}
+				
 			if(is_send)
 			{
 				int remaining = buffer_size;
@@ -268,8 +283,6 @@ protected:
 
 		free(send_buffer);
 		free(recv_buffer);
-		FILE * pFile;
-		pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut.txt","w");
 		EXPECT_EQ(expect_size, total_size);
 		fclose (pFile);
 		close(client_socket);

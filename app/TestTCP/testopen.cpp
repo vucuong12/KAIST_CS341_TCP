@@ -46,7 +46,7 @@ protected:
 			for(int k=0; k<test_size; k++)
 			{
 				fd_array[k] = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-				//fprintf(pFile, "Outer %d: fd = %d \n", j, fd_array[k]);
+				fprintf(pFile, "Outer %d: fd = %d \n", j, fd_array[k]);
 				if(fd_array[k] < 0)
 					failed++;
 				else
