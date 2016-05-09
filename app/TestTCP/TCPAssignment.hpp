@@ -153,9 +153,11 @@ struct establishedSockets {
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
+  int demWrite = 0;
   int demSocket = 0;
   int demArrive = 0;
   int socketStart = 0;
+  u32 startSend = 0;
   std::vector<Socket> socketList;
   std::vector<toBeEstablishedSockets> toBeEstablishedList;
   std::vector<establishedSockets> establishedList;
@@ -169,7 +171,7 @@ private:
   int findToBeEstablishedSockets(u16 port, u32 IP);
   int findWaitingAcceptSocket(u16 port, u32 IP);
   int findEstablishedSockets(u16 port, u32 IP);
-  bool tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS, bool isForTimeout);
+  int tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS, bool isForTimeout);
   int tryToSendPacket(int socIndex, u8* buf, u32 length, bool isForTimeout);
   Time calculateRTO(int socIndex); 
   Time calculateDevRTT(int socIndex);

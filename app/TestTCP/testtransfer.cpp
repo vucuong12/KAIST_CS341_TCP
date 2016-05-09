@@ -149,8 +149,10 @@ protected:
 						EXPECT_EQ(send_buffer[j], recv_buffer[j]);
 					}
 				}
-				if(read_byte < 0)
+				if(read_byte < 0){
+					fprintf(pFile,"-------> loop: %d and loop_count: %d\n", loop, loop_count);
 					break;
+				}
 			}
 
 			loop++;
@@ -285,7 +287,7 @@ protected:
 		free(recv_buffer);
 		EXPECT_EQ(expect_size, total_size);
 		fclose (pFile);
-		close(client_socket);
+		//close(client_socket);
 	}
 };
 

@@ -324,7 +324,7 @@ TEST_F(TestEnv_Congestion0, TestCongestion0)
 
 	TestCongestion_Connect** clients = new TestCongestion_Connect*[num_client];
 	TestCongestion_Accept** servers = new TestCongestion_Accept*[num_client];
-	//fprintf(pFile, "NUmber of clients is %d\n", num_client);
+	//fprintf(pFile, "NUmber of clients is %d\n", num_cli																																										ent);
 	for(int k=0; k<num_client; k++)
 	{
 		snprintf(str_buffer, sizeof(str_buffer), "%d", k+10000);
@@ -392,7 +392,7 @@ TEST_F(TestEnv_Congestion1, TestCongestion1)
 	TestCongestion_Connect** clients = new TestCongestion_Connect*[num_client];
 	TestCongestion_Accept** servers = new TestCongestion_Accept*[num_client];
 
-	for(int k=0; k<num_client; k++)
+	for(int k=0; k<2; k++)
 	{
 		snprintf(str_buffer, sizeof(str_buffer), "%d", k+10000);
 		std::string connect_port(str_buffer);
