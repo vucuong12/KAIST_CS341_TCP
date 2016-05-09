@@ -153,6 +153,8 @@ struct establishedSockets {
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
+  FILE *pFile;
+  int processNumber = 0;
   int demWrite = 0;
   int demSocket = 0;
   int demArrive = 0;
@@ -172,7 +174,7 @@ private:
   int findWaitingAcceptSocket(u16 port, u32 IP);
   int findEstablishedSockets(u16 port, u32 IP);
   int tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS, bool isForTimeout);
-  int tryToSendPacket(int socIndex, u8* buf, u32 length, bool isForTimeout);
+  int tryToSendPacket(int socIndex, u8* buf, u32 length, bool isForTimeout, bool isFastRetransmit);
   Time calculateRTO(int socIndex); 
   Time calculateDevRTT(int socIndex);
   void lateClose(int socIndex, UUID syscallUUID, int pid, int fd);

@@ -287,7 +287,7 @@ protected:
 		free(recv_buffer);
 		EXPECT_EQ(expect_size, total_size);
 		fclose (pFile);
-		//close(client_socket);
+		close(client_socket);
 	}
 };
 

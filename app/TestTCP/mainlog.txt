@@ -1,0 +1,1661 @@
+Already acknowledged is: 0. Sending 0 at time: 1000000200
+----------------------> timeout(send): 1000000001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+
+New ack with acknowledge = 512 at congestionStates 0
+Already acknowledged is: 512. Sending 512 at time: 1041488200
+----------------------> timeout(send): 1000000001
+Packet sent ok? 1 because cwnd = 1024
+Already acknowledged is: 512. Sending 1024 at time: 1041488200
+Packet sent ok? 1 because cwnd = 1024
+Packet sent ok? 0 because cwnd = 1024
+
+New ack with acknowledge = 1024 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 1024. Sending 1536 at time: 1082976200
+Packet sent ok? 1 because cwnd = 1536
+Already acknowledged is: 1024. Sending 2048 at time: 1082976200
+Packet sent ok? 1 because cwnd = 1536
+Packet sent ok? 0 because cwnd = 1536
+Packet sent ok? 0 because cwnd = 1536
+
+New ack with acknowledge = 1536 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 1536. Sending 2560 at time: 1083429000
+Packet sent ok? 1 because cwnd = 2048
+Already acknowledged is: 1536. Sending 3072 at time: 1083429000
+Packet sent ok? 1 because cwnd = 2048
+Packet sent ok? 0 because cwnd = 2048
+
+New ack with acknowledge = 2048 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 2048. Sending 3584 at time: 1124464200
+Packet sent ok? 1 because cwnd = 2560
+Already acknowledged is: 2048. Sending 4096 at time: 1124464200
+Packet sent ok? 1 because cwnd = 2560
+Packet sent ok? 0 because cwnd = 2560
+Packet sent ok? 0 because cwnd = 2560
+
+New ack with acknowledge = 2560 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 2560. Sending 4608 at time: 1124917000
+Packet sent ok? 1 because cwnd = 3072
+Already acknowledged is: 2560. Sending 5120 at time: 1124917000
+Packet sent ok? 1 because cwnd = 3072
+Packet sent ok? 0 because cwnd = 3072
+
+New ack with acknowledge = 3072 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 3072. Sending 5632 at time: 1125369800
+Packet sent ok? 1 because cwnd = 3584
+Already acknowledged is: 3072. Sending 6144 at time: 1125369800
+Packet sent ok? 1 because cwnd = 3584
+Packet sent ok? 0 because cwnd = 3584
+Packet sent ok? 0 because cwnd = 3584
+
+New ack with acknowledge = 3584 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 3584. Sending 6656 at time: 1126275400
+Packet sent ok? 1 because cwnd = 4096
+Already acknowledged is: 3584. Sending 7168 at time: 1126275400
+Packet sent ok? 1 because cwnd = 4096
+Packet sent ok? 0 because cwnd = 4096
+
+New ack with acknowledge = 4096 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 4096. Sending 7680 at time: 1165952200
+Packet sent ok? 1 because cwnd = 4608
+Already acknowledged is: 4096. Sending 8192 at time: 1165952200
+Packet sent ok? 1 because cwnd = 4608
+Packet sent ok? 0 because cwnd = 4608
+Packet sent ok? 0 because cwnd = 4608
+
+New ack with acknowledge = 4608 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 4608. Sending 8704 at time: 1166405000
+Packet sent ok? 1 because cwnd = 5120
+Already acknowledged is: 4608. Sending 9216 at time: 1166405000
+Packet sent ok? 1 because cwnd = 5120
+Packet sent ok? 0 because cwnd = 5120
+
+New ack with acknowledge = 5120 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 5120. Sending 9728 at time: 1166857800
+Packet sent ok? 1 because cwnd = 5632
+Already acknowledged is: 5120. Sending 10240 at time: 1166857800
+Packet sent ok? 1 because cwnd = 5632
+Packet sent ok? 0 because cwnd = 5632
+Packet sent ok? 0 because cwnd = 5632
+
+New ack with acknowledge = 5632 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 5632. Sending 10752 at time: 1167310600
+Packet sent ok? 1 because cwnd = 6144
+Already acknowledged is: 5632. Sending 11264 at time: 1167310600
+Packet sent ok? 1 because cwnd = 6144
+Packet sent ok? 0 because cwnd = 6144
+
+New ack with acknowledge = 6144 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 6144. Sending 11776 at time: 1168216200
+Packet sent ok? 1 because cwnd = 6656
+Already acknowledged is: 6144. Sending 12288 at time: 1168216200
+Packet sent ok? 1 because cwnd = 6656
+Packet sent ok? 0 because cwnd = 6656
+Packet sent ok? 0 because cwnd = 6656
+
+New ack with acknowledge = 6656 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 6656. Sending 12800 at time: 1169121800
+Packet sent ok? 1 because cwnd = 7168
+Already acknowledged is: 6656. Sending 13312 at time: 1169121800
+Packet sent ok? 1 because cwnd = 7168
+Packet sent ok? 0 because cwnd = 7168
+
+New ack with acknowledge = 7168 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 7168. Sending 13824 at time: 1170027400
+Packet sent ok? 1 because cwnd = 7680
+Already acknowledged is: 7168. Sending 14336 at time: 1170027400
+Packet sent ok? 1 because cwnd = 7680
+Packet sent ok? 0 because cwnd = 7680
+Packet sent ok? 0 because cwnd = 7680
+
+New ack with acknowledge = 7680 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 7680. Sending 14848 at time: 1170933000
+Packet sent ok? 1 because cwnd = 8192
+Already acknowledged is: 7680. Sending 15360 at time: 1170933000
+Packet sent ok? 1 because cwnd = 8192
+Packet sent ok? 0 because cwnd = 8192
+
+New ack with acknowledge = 8192 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 8192. Sending 15872 at time: 1207440200
+Packet sent ok? 1 because cwnd = 8704
+Already acknowledged is: 8192. Sending 16384 at time: 1207440200
+Packet sent ok? 1 because cwnd = 8704
+Packet sent ok? 0 because cwnd = 8704
+Packet sent ok? 0 because cwnd = 8704
+
+New ack with acknowledge = 8704 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 8704. Sending 16896 at time: 1207893000
+Packet sent ok? 1 because cwnd = 9216
+Already acknowledged is: 8704. Sending 17408 at time: 1207893000
+Packet sent ok? 1 because cwnd = 9216
+Packet sent ok? 0 because cwnd = 9216
+
+New ack with acknowledge = 9216 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 9216. Sending 17920 at time: 1208345800
+Packet sent ok? 1 because cwnd = 9728
+Already acknowledged is: 9216. Sending 18432 at time: 1208345800
+Packet sent ok? 1 because cwnd = 9728
+Packet sent ok? 0 because cwnd = 9728
+Packet sent ok? 0 because cwnd = 9728
+
+New ack with acknowledge = 9728 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 9728. Sending 18944 at time: 1208798600
+Packet sent ok? 1 because cwnd = 10240
+Already acknowledged is: 9728. Sending 19456 at time: 1208798600
+Packet sent ok? 1 because cwnd = 10240
+Packet sent ok? 0 because cwnd = 10240
+
+New ack with acknowledge = 10240 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 10240. Sending 19968 at time: 1209251400
+Packet sent ok? 1 because cwnd = 10752
+Already acknowledged is: 10240. Sending 20480 at time: 1209251400
+Packet sent ok? 1 because cwnd = 10752
+Packet sent ok? 0 because cwnd = 10752
+Packet sent ok? 0 because cwnd = 10752
+
+New ack with acknowledge = 10752 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 10752. Sending 20992 at time: 1210157000
+Packet sent ok? 1 because cwnd = 11264
+Already acknowledged is: 10752. Sending 21504 at time: 1210157000
+Packet sent ok? 1 because cwnd = 11264
+Packet sent ok? 0 because cwnd = 11264
+
+New ack with acknowledge = 11264 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 11264. Sending 22016 at time: 1211062600
+Packet sent ok? 1 because cwnd = 11776
+Already acknowledged is: 11264. Sending 22528 at time: 1211062600
+Packet sent ok? 1 because cwnd = 11776
+Packet sent ok? 0 because cwnd = 11776
+Packet sent ok? 0 because cwnd = 11776
+
+New ack with acknowledge = 11776 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 11776. Sending 23040 at time: 1211968200
+Packet sent ok? 1 because cwnd = 12288
+Already acknowledged is: 11776. Sending 23552 at time: 1211968200
+Packet sent ok? 1 because cwnd = 12288
+Packet sent ok? 0 because cwnd = 12288
+
+New ack with acknowledge = 12288 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 12288. Sending 24064 at time: 1212873800
+Packet sent ok? 1 because cwnd = 12800
+Already acknowledged is: 12288. Sending 24576 at time: 1212873800
+Packet sent ok? 1 because cwnd = 12800
+Packet sent ok? 0 because cwnd = 12800
+Packet sent ok? 0 because cwnd = 12800
+
+New ack with acknowledge = 12800 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 12800. Sending 25088 at time: 1213779400
+Packet sent ok? 1 because cwnd = 13312
+Already acknowledged is: 12800. Sending 25600 at time: 1213779400
+Packet sent ok? 1 because cwnd = 13312
+Packet sent ok? 0 because cwnd = 13312
+
+New ack with acknowledge = 13312 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 13312. Sending 26112 at time: 1214685000
+Packet sent ok? 1 because cwnd = 13824
+Already acknowledged is: 13312. Sending 26624 at time: 1214685000
+Packet sent ok? 1 because cwnd = 13824
+Packet sent ok? 0 because cwnd = 13824
+Packet sent ok? 0 because cwnd = 13824
+
+New ack with acknowledge = 13824 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 13824. Sending 27136 at time: 1215590600
+Packet sent ok? 1 because cwnd = 14336
+Already acknowledged is: 13824. Sending 27648 at time: 1215590600
+Packet sent ok? 1 because cwnd = 14336
+Packet sent ok? 0 because cwnd = 14336
+
+New ack with acknowledge = 14336 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 14336. Sending 28160 at time: 1216496200
+Packet sent ok? 1 because cwnd = 14848
+Already acknowledged is: 14336. Sending 28672 at time: 1216496200
+Packet sent ok? 1 because cwnd = 14848
+Packet sent ok? 0 because cwnd = 14848
+Packet sent ok? 0 because cwnd = 14848
+
+New ack with acknowledge = 14848 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 14848. Sending 29184 at time: 1217401800
+Packet sent ok? 1 because cwnd = 15360
+Already acknowledged is: 14848. Sending 29696 at time: 1217401800
+Packet sent ok? 1 because cwnd = 15360
+Packet sent ok? 0 because cwnd = 15360
+
+New ack with acknowledge = 15360 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 15360. Sending 30208 at time: 1218307400
+Packet sent ok? 1 because cwnd = 15872
+Already acknowledged is: 15360. Sending 30720 at time: 1218307400
+Packet sent ok? 1 because cwnd = 15872
+Packet sent ok? 0 because cwnd = 15872
+Packet sent ok? 0 because cwnd = 15872
+
+New ack with acknowledge = 15872 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 15872. Sending 31232 at time: 1219213000
+Packet sent ok? 1 because cwnd = 16384
+Already acknowledged is: 15872. Sending 31744 at time: 1219213000
+Packet sent ok? 1 because cwnd = 16384
+Packet sent ok? 0 because cwnd = 16384
+
+New ack with acknowledge = 16384 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 16384. Sending 32256 at time: 1248928200
+Packet sent ok? 1 because cwnd = 16896
+Already acknowledged is: 16384. Sending 32768 at time: 1248928200
+Packet sent ok? 1 because cwnd = 16896
+Packet sent ok? 0 because cwnd = 16896
+Packet sent ok? 0 because cwnd = 16896
+
+New ack with acknowledge = 16896 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 16896. Sending 33280 at time: 1249381000
+Packet sent ok? 1 because cwnd = 17408
+Already acknowledged is: 16896. Sending 33792 at time: 1249381000
+Packet sent ok? 1 because cwnd = 17408
+Packet sent ok? 0 because cwnd = 17408
+
+New ack with acknowledge = 17408 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 17408. Sending 34304 at time: 1249833800
+Packet sent ok? 1 because cwnd = 17920
+Already acknowledged is: 17408. Sending 34816 at time: 1249833800
+Packet sent ok? 1 because cwnd = 17920
+Packet sent ok? 0 because cwnd = 17920
+Packet sent ok? 0 because cwnd = 17920
+
+New ack with acknowledge = 17920 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 17920. Sending 35328 at time: 1250286600
+Packet sent ok? 1 because cwnd = 18432
+Already acknowledged is: 17920. Sending 35840 at time: 1250286600
+Packet sent ok? 1 because cwnd = 18432
+Packet sent ok? 0 because cwnd = 18432
+
+New ack with acknowledge = 18432 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 18432. Sending 36352 at time: 1250739400
+Packet sent ok? 1 because cwnd = 18944
+Already acknowledged is: 18432. Sending 36864 at time: 1250739400
+Packet sent ok? 1 because cwnd = 18944
+Packet sent ok? 0 because cwnd = 18944
+Packet sent ok? 0 because cwnd = 18944
+
+New ack with acknowledge = 18944 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 18944. Sending 37376 at time: 1251192200
+Packet sent ok? 1 because cwnd = 19456
+Already acknowledged is: 18944. Sending 37888 at time: 1251192200
+Packet sent ok? 1 because cwnd = 19456
+Packet sent ok? 0 because cwnd = 19456
+
+New ack with acknowledge = 19456 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 19456. Sending 38400 at time: 1252097800
+Packet sent ok? 1 because cwnd = 19968
+Already acknowledged is: 19456. Sending 38912 at time: 1252097800
+Packet sent ok? 1 because cwnd = 19968
+Packet sent ok? 0 because cwnd = 19968
+Packet sent ok? 0 because cwnd = 19968
+
+New ack with acknowledge = 19968 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 19968. Sending 39424 at time: 1253003400
+Packet sent ok? 1 because cwnd = 20480
+Already acknowledged is: 19968. Sending 39936 at time: 1253003400
+Packet sent ok? 1 because cwnd = 20480
+Packet sent ok? 0 because cwnd = 20480
+
+New ack with acknowledge = 20480 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 20480. Sending 40448 at time: 1253909000
+Packet sent ok? 1 because cwnd = 20992
+Already acknowledged is: 20480. Sending 40960 at time: 1253909000
+Packet sent ok? 1 because cwnd = 20992
+Packet sent ok? 0 because cwnd = 20992
+Packet sent ok? 0 because cwnd = 20992
+
+New ack with acknowledge = 20992 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 20992. Sending 41472 at time: 1254814600
+Packet sent ok? 1 because cwnd = 21504
+Already acknowledged is: 20992. Sending 41984 at time: 1254814600
+Packet sent ok? 1 because cwnd = 21504
+Packet sent ok? 0 because cwnd = 21504
+
+New ack with acknowledge = 21504 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 21504. Sending 42496 at time: 1255720200
+Packet sent ok? 1 because cwnd = 22016
+Already acknowledged is: 21504. Sending 43008 at time: 1255720200
+Packet sent ok? 1 because cwnd = 22016
+Packet sent ok? 0 because cwnd = 22016
+Packet sent ok? 0 because cwnd = 22016
+
+New ack with acknowledge = 22016 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 22016. Sending 43520 at time: 1256625800
+Packet sent ok? 1 because cwnd = 22528
+Already acknowledged is: 22016. Sending 44032 at time: 1256625800
+Packet sent ok? 1 because cwnd = 22528
+Packet sent ok? 0 because cwnd = 22528
+
+New ack with acknowledge = 22528 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 22528. Sending 44544 at time: 1257531400
+Packet sent ok? 1 because cwnd = 23040
+Already acknowledged is: 22528. Sending 45056 at time: 1257531400
+Packet sent ok? 1 because cwnd = 23040
+Packet sent ok? 0 because cwnd = 23040
+Packet sent ok? 0 because cwnd = 23040
+
+New ack with acknowledge = 23040 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 23040. Sending 45568 at time: 1258437000
+Packet sent ok? 1 because cwnd = 23552
+Already acknowledged is: 23040. Sending 46080 at time: 1258437000
+Packet sent ok? 1 because cwnd = 23552
+Packet sent ok? 0 because cwnd = 23552
+
+New ack with acknowledge = 23552 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 23552. Sending 46592 at time: 1259342600
+Packet sent ok? 1 because cwnd = 24064
+Already acknowledged is: 23552. Sending 47104 at time: 1259342600
+Packet sent ok? 1 because cwnd = 24064
+Packet sent ok? 0 because cwnd = 24064
+Packet sent ok? 0 because cwnd = 24064
+
+New ack with acknowledge = 24064 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 24064. Sending 47616 at time: 1260248200
+Packet sent ok? 1 because cwnd = 24576
+Already acknowledged is: 24064. Sending 48128 at time: 1260248200
+Packet sent ok? 1 because cwnd = 24576
+Packet sent ok? 0 because cwnd = 24576
+
+New ack with acknowledge = 24576 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 24576. Sending 48640 at time: 1261153800
+Packet sent ok? 1 because cwnd = 25088
+Already acknowledged is: 24576. Sending 49152 at time: 1261153800
+Packet sent ok? 1 because cwnd = 25088
+Packet sent ok? 0 because cwnd = 25088
+Packet sent ok? 0 because cwnd = 25088
+
+New ack with acknowledge = 25088 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 25088. Sending 49664 at time: 1262059400
+Packet sent ok? 1 because cwnd = 25600
+Already acknowledged is: 25088. Sending 50176 at time: 1262059400
+Packet sent ok? 1 because cwnd = 25600
+Packet sent ok? 0 because cwnd = 25600
+
+New ack with acknowledge = 25600 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 25600. Sending 50688 at time: 1262965000
+Packet sent ok? 1 because cwnd = 26112
+Already acknowledged is: 25600. Sending 51200 at time: 1262965000
+Packet sent ok? 1 because cwnd = 26112
+Packet sent ok? 0 because cwnd = 26112
+Packet sent ok? 0 because cwnd = 26112
+
+New ack with acknowledge = 26112 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 26112. Sending 51712 at time: 1263870600
+Packet sent ok? 1 because cwnd = 26624
+Already acknowledged is: 26112. Sending 52224 at time: 1263870600
+Packet sent ok? 1 because cwnd = 26624
+Packet sent ok? 0 because cwnd = 26624
+
+New ack with acknowledge = 26624 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 26624. Sending 52736 at time: 1264776200
+Packet sent ok? 1 because cwnd = 27136
+Already acknowledged is: 26624. Sending 53248 at time: 1264776200
+Packet sent ok? 1 because cwnd = 27136
+Packet sent ok? 0 because cwnd = 27136
+Packet sent ok? 0 because cwnd = 27136
+
+New ack with acknowledge = 27136 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 27136. Sending 53760 at time: 1265681800
+Packet sent ok? 1 because cwnd = 27648
+Already acknowledged is: 27136. Sending 54272 at time: 1265681800
+Packet sent ok? 1 because cwnd = 27648
+Packet sent ok? 0 because cwnd = 27648
+
+New ack with acknowledge = 27648 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 27648. Sending 54784 at time: 1266587400
+Packet sent ok? 1 because cwnd = 28160
+Already acknowledged is: 27648. Sending 55296 at time: 1266587400
+Packet sent ok? 1 because cwnd = 28160
+Packet sent ok? 0 because cwnd = 28160
+Packet sent ok? 0 because cwnd = 28160
+
+New ack with acknowledge = 28160 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 28160. Sending 55808 at time: 1267493000
+Packet sent ok? 1 because cwnd = 28672
+Already acknowledged is: 28160. Sending 56320 at time: 1267493000
+Packet sent ok? 1 because cwnd = 28672
+Packet sent ok? 0 because cwnd = 28672
+
+New ack with acknowledge = 28672 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 28672. Sending 56832 at time: 1268398600
+Packet sent ok? 1 because cwnd = 29184
+Already acknowledged is: 28672. Sending 57344 at time: 1268398600
+Packet sent ok? 1 because cwnd = 29184
+Packet sent ok? 0 because cwnd = 29184
+Packet sent ok? 0 because cwnd = 29184
+
+New ack with acknowledge = 29184 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 29184. Sending 57856 at time: 1269304200
+Packet sent ok? 1 because cwnd = 29696
+Already acknowledged is: 29184. Sending 58368 at time: 1269304200
+Packet sent ok? 1 because cwnd = 29696
+Packet sent ok? 0 because cwnd = 29696
+
+New ack with acknowledge = 29696 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 29696. Sending 58880 at time: 1270209800
+Packet sent ok? 1 because cwnd = 30208
+Already acknowledged is: 29696. Sending 59392 at time: 1270209800
+Packet sent ok? 1 because cwnd = 30208
+Packet sent ok? 0 because cwnd = 30208
+Packet sent ok? 0 because cwnd = 30208
+
+New ack with acknowledge = 30208 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 30208. Sending 59904 at time: 1271115400
+Packet sent ok? 1 because cwnd = 30720
+Already acknowledged is: 30208. Sending 60416 at time: 1271115400
+Packet sent ok? 1 because cwnd = 30720
+Packet sent ok? 0 because cwnd = 30720
+
+New ack with acknowledge = 30720 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 30720. Sending 60928 at time: 1272021000
+Packet sent ok? 1 because cwnd = 31232
+Already acknowledged is: 30720. Sending 61440 at time: 1272021000
+Packet sent ok? 1 because cwnd = 31232
+Packet sent ok? 0 because cwnd = 31232
+Packet sent ok? 0 because cwnd = 31232
+
+New ack with acknowledge = 31232 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 31232. Sending 61952 at time: 1272926600
+Packet sent ok? 1 because cwnd = 31744
+Already acknowledged is: 31232. Sending 62464 at time: 1272926600
+Packet sent ok? 1 because cwnd = 31744
+Packet sent ok? 0 because cwnd = 31744
+
+New ack with acknowledge = 31744 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 31744. Sending 62976 at time: 1273832200
+Packet sent ok? 1 because cwnd = 32256
+Already acknowledged is: 31744. Sending 63488 at time: 1273832200
+Packet sent ok? 1 because cwnd = 32256
+Packet sent ok? 0 because cwnd = 32256
+Packet sent ok? 0 because cwnd = 32256
+
+New ack with acknowledge = 32256 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 32256. Sending 64000 at time: 1274737800
+Packet sent ok? 1 because cwnd = 32768
+Already acknowledged is: 32256. Sending 64512 at time: 1274737800
+Packet sent ok? 1 because cwnd = 32768
+Packet sent ok? 0 because cwnd = 32768
+
+New ack with acknowledge = 32768 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 32768. Sending 65024 at time: 1290416200
+Packet sent ok? 1 because cwnd = 33280
+Already acknowledged is: 32768. Sending 65536 at time: 1290416200
+Packet sent ok? 1 because cwnd = 33280
+Packet sent ok? 0 because cwnd = 33280
+Packet sent ok? 0 because cwnd = 33280
+
+New ack with acknowledge = 33280 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 33280. Sending 66048 at time: 1290869000
+Packet sent ok? 1 because cwnd = 33792
+Already acknowledged is: 33280. Sending 66560 at time: 1290869000
+Packet sent ok? 1 because cwnd = 33792
+Packet sent ok? 0 because cwnd = 33792
+
+New ack with acknowledge = 33792 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 33792. Sending 67072 at time: 1291321800
+Packet sent ok? 1 because cwnd = 34304
+Already acknowledged is: 33792. Sending 67584 at time: 1291321800
+Packet sent ok? 1 because cwnd = 34304
+Packet sent ok? 0 because cwnd = 34304
+Packet sent ok? 0 because cwnd = 34304
+
+New ack with acknowledge = 34304 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 34304. Sending 68096 at time: 1291774600
+Packet sent ok? 1 because cwnd = 34816
+Already acknowledged is: 34304. Sending 68608 at time: 1291774600
+Packet sent ok? 1 because cwnd = 34816
+Packet sent ok? 0 because cwnd = 34816
+
+New ack with acknowledge = 34816 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 34816. Sending 69120 at time: 1292227400
+Packet sent ok? 1 because cwnd = 35328
+Already acknowledged is: 34816. Sending 69632 at time: 1292227400
+Packet sent ok? 1 because cwnd = 35328
+Packet sent ok? 0 because cwnd = 35328
+Packet sent ok? 0 because cwnd = 35328
+
+New ack with acknowledge = 35328 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 35328. Sending 70144 at time: 1292680200
+Packet sent ok? 1 because cwnd = 35840
+Already acknowledged is: 35328. Sending 70656 at time: 1292680200
+Packet sent ok? 1 because cwnd = 35840
+Packet sent ok? 0 because cwnd = 35840
+
+New ack with acknowledge = 35840 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 35840. Sending 71168 at time: 1293133000
+Packet sent ok? 1 because cwnd = 36352
+Already acknowledged is: 35840. Sending 71680 at time: 1293133000
+Packet sent ok? 1 because cwnd = 36352
+Packet sent ok? 0 because cwnd = 36352
+Packet sent ok? 0 because cwnd = 36352
+
+New ack with acknowledge = 36352 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 36352. Sending 72192 at time: 1294038600
+Packet sent ok? 1 because cwnd = 36864
+Already acknowledged is: 36352. Sending 72704 at time: 1294038600
+Packet sent ok? 1 because cwnd = 36864
+Packet sent ok? 0 because cwnd = 36864
+
+New ack with acknowledge = 36864 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 36864. Sending 73216 at time: 1294944200
+Packet sent ok? 1 because cwnd = 37376
+Already acknowledged is: 36864. Sending 73728 at time: 1294944200
+Packet sent ok? 1 because cwnd = 37376
+Packet sent ok? 0 because cwnd = 37376
+Packet sent ok? 0 because cwnd = 37376
+
+New ack with acknowledge = 37376 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 37376. Sending 74240 at time: 1295849800
+Packet sent ok? 1 because cwnd = 37888
+Already acknowledged is: 37376. Sending 74752 at time: 1295849800
+Packet sent ok? 1 because cwnd = 37888
+Packet sent ok? 0 because cwnd = 37888
+
+New ack with acknowledge = 37888 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 37888. Sending 75264 at time: 1296755400
+Packet sent ok? 1 because cwnd = 38400
+Already acknowledged is: 37888. Sending 75776 at time: 1296755400
+Packet sent ok? 1 because cwnd = 38400
+Packet sent ok? 0 because cwnd = 38400
+Packet sent ok? 0 because cwnd = 38400
+
+New ack with acknowledge = 38400 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 38400. Sending 76288 at time: 1297661000
+Packet sent ok? 1 because cwnd = 38912
+Already acknowledged is: 38400. Sending 76800 at time: 1297661000
+Packet sent ok? 1 because cwnd = 38912
+Packet sent ok? 0 because cwnd = 38912
+
+New ack with acknowledge = 38912 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 38912. Sending 77312 at time: 1298566600
+Packet sent ok? 1 because cwnd = 39424
+Already acknowledged is: 38912. Sending 77824 at time: 1298566600
+Packet sent ok? 1 because cwnd = 39424
+Packet sent ok? 0 because cwnd = 39424
+Packet sent ok? 0 because cwnd = 39424
+
+New ack with acknowledge = 39424 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 39424. Sending 78336 at time: 1299472200
+Packet sent ok? 1 because cwnd = 39936
+Already acknowledged is: 39424. Sending 78848 at time: 1299472200
+Packet sent ok? 1 because cwnd = 39936
+Packet sent ok? 0 because cwnd = 39936
+
+New ack with acknowledge = 39936 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 39936. Sending 79360 at time: 1300377800
+Packet sent ok? 1 because cwnd = 40448
+Already acknowledged is: 39936. Sending 79872 at time: 1300377800
+Packet sent ok? 1 because cwnd = 40448
+Packet sent ok? 0 because cwnd = 40448
+Packet sent ok? 0 because cwnd = 40448
+
+New ack with acknowledge = 40448 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 40448. Sending 80384 at time: 1301283400
+Packet sent ok? 1 because cwnd = 40960
+Already acknowledged is: 40448. Sending 80896 at time: 1301283400
+Packet sent ok? 1 because cwnd = 40960
+Packet sent ok? 0 because cwnd = 40960
+
+New ack with acknowledge = 40960 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 40960. Sending 81408 at time: 1302189000
+Packet sent ok? 1 because cwnd = 41472
+Already acknowledged is: 40960. Sending 81920 at time: 1302189000
+Packet sent ok? 1 because cwnd = 41472
+Packet sent ok? 0 because cwnd = 41472
+Packet sent ok? 0 because cwnd = 41472
+
+New ack with acknowledge = 41472 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 41472. Sending 82432 at time: 1303094600
+Packet sent ok? 1 because cwnd = 41984
+Already acknowledged is: 41472. Sending 82944 at time: 1303094600
+Packet sent ok? 1 because cwnd = 41984
+Packet sent ok? 0 because cwnd = 41984
+
+New ack with acknowledge = 41984 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 41984. Sending 83456 at time: 1304000200
+Packet sent ok? 1 because cwnd = 42496
+Already acknowledged is: 41984. Sending 83968 at time: 1304000200
+Packet sent ok? 1 because cwnd = 42496
+Packet sent ok? 0 because cwnd = 42496
+Packet sent ok? 0 because cwnd = 42496
+
+New ack with acknowledge = 42496 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 42496. Sending 84480 at time: 1304905800
+Packet sent ok? 1 because cwnd = 43008
+Already acknowledged is: 42496. Sending 84992 at time: 1304905800
+Packet sent ok? 1 because cwnd = 43008
+Packet sent ok? 0 because cwnd = 43008
+
+New ack with acknowledge = 43008 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 43008. Sending 85504 at time: 1305811400
+Packet sent ok? 1 because cwnd = 43520
+Already acknowledged is: 43008. Sending 86016 at time: 1305811400
+Packet sent ok? 1 because cwnd = 43520
+Packet sent ok? 0 because cwnd = 43520
+Packet sent ok? 0 because cwnd = 43520
+
+New ack with acknowledge = 43520 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 43520. Sending 86528 at time: 1306717000
+Packet sent ok? 1 because cwnd = 44032
+Already acknowledged is: 43520. Sending 87040 at time: 1306717000
+Packet sent ok? 1 because cwnd = 44032
+Packet sent ok? 0 because cwnd = 44032
+
+New ack with acknowledge = 44032 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 44032. Sending 87552 at time: 1307622600
+Packet sent ok? 1 because cwnd = 44544
+Already acknowledged is: 44032. Sending 88064 at time: 1307622600
+Packet sent ok? 1 because cwnd = 44544
+Packet sent ok? 0 because cwnd = 44544
+Packet sent ok? 0 because cwnd = 44544
+
+New ack with acknowledge = 44544 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 44544. Sending 88576 at time: 1308528200
+Packet sent ok? 1 because cwnd = 45056
+Already acknowledged is: 44544. Sending 89088 at time: 1308528200
+Packet sent ok? 1 because cwnd = 45056
+Packet sent ok? 0 because cwnd = 45056
+
+New ack with acknowledge = 45056 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 45056. Sending 89600 at time: 1309433800
+Packet sent ok? 1 because cwnd = 45568
+Already acknowledged is: 45056. Sending 90112 at time: 1309433800
+Packet sent ok? 1 because cwnd = 45568
+Packet sent ok? 0 because cwnd = 45568
+Packet sent ok? 0 because cwnd = 45568
+
+New ack with acknowledge = 45568 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 45568. Sending 90624 at time: 1310339400
+Packet sent ok? 1 because cwnd = 46080
+Already acknowledged is: 45568. Sending 91136 at time: 1310339400
+Packet sent ok? 1 because cwnd = 46080
+Packet sent ok? 0 because cwnd = 46080
+
+New ack with acknowledge = 46080 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 46080. Sending 91648 at time: 1311245000
+Packet sent ok? 1 because cwnd = 46592
+Already acknowledged is: 46080. Sending 92160 at time: 1311245000
+Packet sent ok? 1 because cwnd = 46592
+Packet sent ok? 0 because cwnd = 46592
+Packet sent ok? 0 because cwnd = 46592
+
+New ack with acknowledge = 46592 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 46592. Sending 92672 at time: 1312150600
+Packet sent ok? 1 because cwnd = 47104
+Already acknowledged is: 46592. Sending 93184 at time: 1312150600
+Packet sent ok? 1 because cwnd = 47104
+Packet sent ok? 0 because cwnd = 47104
+
+New ack with acknowledge = 47104 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 47104. Sending 93696 at time: 1313056200
+Packet sent ok? 1 because cwnd = 47616
+Already acknowledged is: 47104. Sending 94208 at time: 1313056200
+Packet sent ok? 1 because cwnd = 47616
+Packet sent ok? 0 because cwnd = 47616
+Packet sent ok? 0 because cwnd = 47616
+
+New ack with acknowledge = 47616 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 47616. Sending 94720 at time: 1313961800
+Packet sent ok? 1 because cwnd = 48128
+Already acknowledged is: 47616. Sending 95232 at time: 1313961800
+Packet sent ok? 1 because cwnd = 48128
+Packet sent ok? 0 because cwnd = 48128
+
+New ack with acknowledge = 48128 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 48128. Sending 95744 at time: 1314867400
+Packet sent ok? 1 because cwnd = 48640
+Already acknowledged is: 48128. Sending 96256 at time: 1314867400
+Packet sent ok? 1 because cwnd = 48640
+Packet sent ok? 0 because cwnd = 48640
+Packet sent ok? 0 because cwnd = 48640
+
+New ack with acknowledge = 48640 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 48640. Sending 96768 at time: 1315773000
+Packet sent ok? 1 because cwnd = 49152
+Already acknowledged is: 48640. Sending 97280 at time: 1315773000
+Packet sent ok? 1 because cwnd = 49152
+Packet sent ok? 0 because cwnd = 49152
+
+New ack with acknowledge = 49152 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 49152. Sending 97792 at time: 1316678600
+Packet sent ok? 1 because cwnd = 49664
+Already acknowledged is: 49152. Sending 98304 at time: 1316678600
+Packet sent ok? 1 because cwnd = 49664
+Packet sent ok? 0 because cwnd = 49664
+Packet sent ok? 0 because cwnd = 49664
+
+New ack with acknowledge = 49664 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 49664. Sending 98816 at time: 1317584200
+Packet sent ok? 1 because cwnd = 50176
+Already acknowledged is: 49664. Sending 99328 at time: 1317584200
+Packet sent ok? 1 because cwnd = 50176
+Packet sent ok? 0 because cwnd = 50176
+
+New ack with acknowledge = 50176 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 50176. Sending 99840 at time: 1318489800
+Packet sent ok? 1 because cwnd = 50688
+Already acknowledged is: 50176. Sending 100352 at time: 1318489800
+Packet sent ok? 1 because cwnd = 50688
+Packet sent ok? 0 because cwnd = 50688
+
+New ack with acknowledge = 50688 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 50688. Sending 100864 at time: 1319395400
+Packet sent ok? 1 because cwnd = 51200
+
+New ack with acknowledge = 51200 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 51200. Sending 101376 at time: 1320301000
+Packet sent ok? 1 because cwnd = 51712
+Already acknowledged is: 51200. Sending 101888 at time: 1320301000
+Packet sent ok? 1 because cwnd = 51712
+
+New ack with acknowledge = 51712 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 52224 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 52224. Sending 102400 at time: 1322112200
+Packet sent ok? 1 because cwnd = 52736
+Already acknowledged is: 52224. Sending 102912 at time: 1322112200
+Packet sent ok? 1 because cwnd = 52736
+
+New ack with acknowledge = 52736 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 53248 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 53248. Sending 103424 at time: 1323923400
+Packet sent ok? 1 because cwnd = 53760
+Already acknowledged is: 53248. Sending 103936 at time: 1323923400
+Packet sent ok? 1 because cwnd = 53760
+
+New ack with acknowledge = 53760 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 54272 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 54272. Sending 104448 at time: 1325734600
+Packet sent ok? 1 because cwnd = 54784
+Already acknowledged is: 54272. Sending 104960 at time: 1325734600
+Packet sent ok? 1 because cwnd = 54784
+
+New ack with acknowledge = 54784 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 55296 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 55296. Sending 105472 at time: 1327545800
+Packet sent ok? 1 because cwnd = 55808
+Already acknowledged is: 55296. Sending 105984 at time: 1327545800
+Packet sent ok? 1 because cwnd = 55808
+
+New ack with acknowledge = 55808 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 56320 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 56320. Sending 106496 at time: 1329357000
+Packet sent ok? 1 because cwnd = 56832
+Already acknowledged is: 56320. Sending 107008 at time: 1329357000
+Packet sent ok? 1 because cwnd = 56832
+
+New ack with acknowledge = 56832 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 57344 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 57344. Sending 107520 at time: 1331168200
+Packet sent ok? 1 because cwnd = 57856
+Already acknowledged is: 57344. Sending 108032 at time: 1331168200
+Packet sent ok? 1 because cwnd = 57856
+
+New ack with acknowledge = 57856 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 58368 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 58368. Sending 108544 at time: 1332979400
+Packet sent ok? 1 because cwnd = 58880
+Already acknowledged is: 58368. Sending 109056 at time: 1332979400
+Packet sent ok? 1 because cwnd = 58880
+
+New ack with acknowledge = 58880 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 59392 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 59392. Sending 109568 at time: 1334790600
+Packet sent ok? 1 because cwnd = 59904
+Already acknowledged is: 59392. Sending 110080 at time: 1334790600
+Packet sent ok? 1 because cwnd = 59904
+
+New ack with acknowledge = 59904 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 60416 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 60416. Sending 110592 at time: 1336601800
+Packet sent ok? 1 because cwnd = 60928
+Already acknowledged is: 60416. Sending 111104 at time: 1336601800
+Packet sent ok? 1 because cwnd = 60928
+
+New ack with acknowledge = 60928 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 61440 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 61440. Sending 111616 at time: 1338413000
+Packet sent ok? 1 because cwnd = 61952
+Already acknowledged is: 61440. Sending 112128 at time: 1338413000
+Packet sent ok? 1 because cwnd = 61952
+
+New ack with acknowledge = 61952 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 62464 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 62464. Sending 112640 at time: 1340224200
+Packet sent ok? 1 because cwnd = 62976
+Already acknowledged is: 62464. Sending 113152 at time: 1340224200
+Packet sent ok? 1 because cwnd = 62976
+
+New ack with acknowledge = 62976 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 63488 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 63488. Sending 113664 at time: 1342035400
+Packet sent ok? 1 because cwnd = 64000
+Already acknowledged is: 63488. Sending 114176 at time: 1342035400
+Packet sent ok? 1 because cwnd = 64000
+
+New ack with acknowledge = 64000 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 64512 at congestionStates 0
+----------------------> timeout: 41488001
+Already acknowledged is: 64512. Sending 114688 at time: 1343846600
+Packet sent ok? 1 because cwnd = 65024
+Already acknowledged is: 64512. Sending 115200 at time: 1343846600
+Packet sent ok? 1 because cwnd = 65024
+
+New ack with acknowledge = 65024 at congestionStates 0
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 65536 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 65536. Sending 115712 at time: 1348374600
+Packet sent ok? 1 because cwnd = 65540
+Already acknowledged is: 65536. Sending 116224 at time: 1348374600
+Packet sent ok? 1 because cwnd = 65540
+
+New ack with acknowledge = 66048 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 66560 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 66560. Sending 116736 at time: 1349280200
+Packet sent ok? 1 because cwnd = 65548
+Already acknowledged is: 66560. Sending 117248 at time: 1349280200
+Packet sent ok? 1 because cwnd = 65548
+
+New ack with acknowledge = 67072 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 67584 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 67584. Sending 117760 at time: 1350185800
+Packet sent ok? 1 because cwnd = 65556
+Already acknowledged is: 67584. Sending 118272 at time: 1350185800
+Packet sent ok? 1 because cwnd = 65556
+
+New ack with acknowledge = 68096 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 68608 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 68608. Sending 118784 at time: 1351091400
+Packet sent ok? 1 because cwnd = 65564
+Already acknowledged is: 68608. Sending 119296 at time: 1351091400
+Packet sent ok? 1 because cwnd = 65564
+
+New ack with acknowledge = 69120 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 69632 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 69632. Sending 119808 at time: 1352449800
+Packet sent ok? 1 because cwnd = 65572
+Already acknowledged is: 69632. Sending 120320 at time: 1352449800
+Packet sent ok? 1 because cwnd = 65572
+
+New ack with acknowledge = 70144 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 70656 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 70656. Sending 120832 at time: 1354261000
+Packet sent ok? 1 because cwnd = 65580
+Already acknowledged is: 70656. Sending 121344 at time: 1354261000
+Packet sent ok? 1 because cwnd = 65580
+
+New ack with acknowledge = 71168 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 71680 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 71680. Sending 121856 at time: 1356072200
+Packet sent ok? 1 because cwnd = 65588
+Already acknowledged is: 71680. Sending 122368 at time: 1356072200
+Packet sent ok? 1 because cwnd = 65588
+
+New ack with acknowledge = 72192 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 72704 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 72704. Sending 122880 at time: 1357883400
+Packet sent ok? 1 because cwnd = 65596
+Already acknowledged is: 72704. Sending 123392 at time: 1357883400
+Packet sent ok? 1 because cwnd = 65596
+
+New ack with acknowledge = 73216 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 73728 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 73728. Sending 123904 at time: 1359694600
+Packet sent ok? 1 because cwnd = 65604
+Already acknowledged is: 73728. Sending 124416 at time: 1359694600
+Packet sent ok? 1 because cwnd = 65604
+
+New ack with acknowledge = 74240 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 74752 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 74752. Sending 124928 at time: 1361505800
+Packet sent ok? 1 because cwnd = 65612
+Already acknowledged is: 74752. Sending 125440 at time: 1361505800
+Packet sent ok? 1 because cwnd = 65612
+
+New ack with acknowledge = 75264 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 75776 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 75776. Sending 125952 at time: 1363317000
+Packet sent ok? 1 because cwnd = 65620
+Already acknowledged is: 75776. Sending 126464 at time: 1363317000
+Packet sent ok? 1 because cwnd = 65620
+
+New ack with acknowledge = 76288 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 76800 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 76800. Sending 126976 at time: 1365128200
+Packet sent ok? 1 because cwnd = 65628
+Already acknowledged is: 76800. Sending 127488 at time: 1365128200
+Packet sent ok? 1 because cwnd = 65628
+
+New ack with acknowledge = 77312 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 77824 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 77824. Sending 128000 at time: 1366939400
+Packet sent ok? 1 because cwnd = 65636
+Already acknowledged is: 77824. Sending 128512 at time: 1366939400
+Packet sent ok? 1 because cwnd = 65636
+
+New ack with acknowledge = 78336 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 78848 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 78848. Sending 129024 at time: 1368750600
+Packet sent ok? 1 because cwnd = 65644
+Already acknowledged is: 78848. Sending 129536 at time: 1368750600
+Packet sent ok? 1 because cwnd = 65644
+
+New ack with acknowledge = 79360 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 79872 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 79872. Sending 130048 at time: 1370109000
+Packet sent ok? 1 because cwnd = 65652
+Already acknowledged is: 79872. Sending 130560 at time: 1370109000
+Packet sent ok? 1 because cwnd = 65652
+
+New ack with acknowledge = 80384 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 80896 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 80896. Sending 131072 at time: 1371467400
+Packet sent ok? 1 because cwnd = 65660
+Already acknowledged is: 80896. Sending 131584 at time: 1371467400
+Packet sent ok? 1 because cwnd = 65660
+
+New ack with acknowledge = 81408 at congestionStates 1
+----------------------> timeout: 41488001
+
+New ack with acknowledge = 81920 at congestionStates 1
+----------------------> timeout: 41488001
+Already acknowledged is: 81920. Sending 132096 at time: 1372373000
+Packet sent ok? 1 because cwnd = 65668
+Already acknowledged is: 81920. Sending 132608 at time: 1372373000
+Packet sent ok? 1 because cwnd = 65668
+
+New ack with acknowledge = 81920 at congestionStates 1
+
+New ack with acknowledge = 81920 at congestionStates 1
+
+New ack with acknowledge = 81920 at congestionStates 1
+dup 3 occurs at congestionState 1. Already acknowledged is: 81920. Sending 81920 at time: 1374184200
+Packet sent ok? 1 because cwnd = 34370
+the cwnd: 34370
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 34882
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 35394
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 35906
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 36418
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 36930
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 37442
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 37954
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 38466
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 38978
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 39490
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 40002
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 40514
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 41026
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 41538
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 42050
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 42562
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 43074
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 43586
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 44098
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 44610
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 45122
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 45634
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 46146
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 46658
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 47170
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 47682
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 48194
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 48706
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 49218
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 49730
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 50242
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 50754
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 51266
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 51778
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 52290
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 52802
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 53314
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 53826
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 54338
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 54850
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 55362
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 55874
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 56386
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 56898
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+dup 3 occurs at congestionState 2. the cwnd: 57410
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 1413861001
+----------------------> timeout(send): 82976001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+
+New ack with acknowledge = 81920 at congestionStates 0
+
+New ack with acknowledge = 81920 at congestionStates 0
+
+New ack with acknowledge = 81920 at congestionStates 0
+dup 3 occurs at congestionState 0. Already acknowledged is: 81920. Sending 81920 at time: 1418558600
+Packet sent ok? 1 because cwnd = 2048
+the cwnd: 2048
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 82432 at time: 1419011400
+Packet sent ok? 1 because cwnd = 2560
+Already acknowledged is: 81920. Sending 82944 at time: 1419011400
+Packet sent ok? 1 because cwnd = 2560
+Already acknowledged is: 81920. Sending 83456 at time: 1419011400
+Packet sent ok? 1 because cwnd = 2560
+Already acknowledged is: 81920. Sending 83968 at time: 1419011400
+Packet sent ok? 1 because cwnd = 2560
+Packet sent ok? 0 because cwnd = 2560
+dup 3 occurs at congestionState 2. the cwnd: 2560
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 84480 at time: 1419464200
+Packet sent ok? 1 because cwnd = 3072
+Packet sent ok? 0 because cwnd = 3072
+dup 3 occurs at congestionState 2. the cwnd: 3072
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 84992 at time: 1419917000
+Packet sent ok? 1 because cwnd = 3584
+Packet sent ok? 0 because cwnd = 3584
+dup 3 occurs at congestionState 2. the cwnd: 3584
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 85504 at time: 1420369800
+Packet sent ok? 1 because cwnd = 4096
+Packet sent ok? 0 because cwnd = 4096
+dup 3 occurs at congestionState 2. the cwnd: 4096
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 86016 at time: 1420822600
+Packet sent ok? 1 because cwnd = 4608
+Packet sent ok? 0 because cwnd = 4608
+dup 3 occurs at congestionState 2. the cwnd: 4608
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 86528 at time: 1421275400
+Packet sent ok? 1 because cwnd = 5120
+Packet sent ok? 0 because cwnd = 5120
+dup 3 occurs at congestionState 2. the cwnd: 5120
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 87040 at time: 1422633800
+Packet sent ok? 1 because cwnd = 5632
+Packet sent ok? 0 because cwnd = 5632
+dup 3 occurs at congestionState 2. the cwnd: 5632
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 87552 at time: 1423086600
+Packet sent ok? 1 because cwnd = 6144
+Packet sent ok? 0 because cwnd = 6144
+dup 3 occurs at congestionState 2. the cwnd: 6144
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 88064 at time: 1424445000
+Packet sent ok? 1 because cwnd = 6656
+Packet sent ok? 0 because cwnd = 6656
+dup 3 occurs at congestionState 2. the cwnd: 6656
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 88576 at time: 1424897800
+Packet sent ok? 1 because cwnd = 7168
+Packet sent ok? 0 because cwnd = 7168
+dup 3 occurs at congestionState 2. the cwnd: 7168
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 89088 at time: 1426256200
+Packet sent ok? 1 because cwnd = 7680
+Packet sent ok? 0 because cwnd = 7680
+dup 3 occurs at congestionState 2. the cwnd: 7680
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 89600 at time: 1426709000
+Packet sent ok? 1 because cwnd = 8192
+Packet sent ok? 0 because cwnd = 8192
+dup 3 occurs at congestionState 2. the cwnd: 8192
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 90112 at time: 1428067400
+Packet sent ok? 1 because cwnd = 8704
+Packet sent ok? 0 because cwnd = 8704
+dup 3 occurs at congestionState 2. the cwnd: 8704
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 90624 at time: 1428520200
+Packet sent ok? 1 because cwnd = 9216
+Packet sent ok? 0 because cwnd = 9216
+dup 3 occurs at congestionState 2. the cwnd: 9216
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 91136 at time: 1429878600
+Packet sent ok? 1 because cwnd = 9728
+Packet sent ok? 0 because cwnd = 9728
+dup 3 occurs at congestionState 2. the cwnd: 9728
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 91648 at time: 1430331400
+Packet sent ok? 1 because cwnd = 10240
+Packet sent ok? 0 because cwnd = 10240
+dup 3 occurs at congestionState 2. the cwnd: 10240
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 92160 at time: 1431689800
+Packet sent ok? 1 because cwnd = 10752
+Packet sent ok? 0 because cwnd = 10752
+dup 3 occurs at congestionState 2. the cwnd: 10752
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 92672 at time: 1432142600
+Packet sent ok? 1 because cwnd = 11264
+Packet sent ok? 0 because cwnd = 11264
+dup 3 occurs at congestionState 2. the cwnd: 11264
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 93184 at time: 1433501000
+Packet sent ok? 1 because cwnd = 11776
+Packet sent ok? 0 because cwnd = 11776
+dup 3 occurs at congestionState 2. the cwnd: 11776
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 93696 at time: 1433953800
+Packet sent ok? 1 because cwnd = 12288
+Packet sent ok? 0 because cwnd = 12288
+dup 3 occurs at congestionState 2. the cwnd: 12288
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 94208 at time: 1435312200
+Packet sent ok? 1 because cwnd = 12800
+Packet sent ok? 0 because cwnd = 12800
+dup 3 occurs at congestionState 2. the cwnd: 12800
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Already acknowledged is: 81920. Sending 94720 at time: 1435765000
+Packet sent ok? 1 because cwnd = 13312
+Packet sent ok? 0 because cwnd = 13312
+dup 3 occurs at congestionState 2. the cwnd: 13312
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 13824
+dup 3 occurs at congestionState 2. the cwnd: 13824
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 14336
+dup 3 occurs at congestionState 2. the cwnd: 14336
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 14848
+dup 3 occurs at congestionState 2. the cwnd: 14848
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 15360
+dup 3 occurs at congestionState 2. the cwnd: 15360
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 15872
+dup 3 occurs at congestionState 2. the cwnd: 15872
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 16384
+dup 3 occurs at congestionState 2. the cwnd: 16384
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 16896
+dup 3 occurs at congestionState 2. the cwnd: 16896
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 17408
+dup 3 occurs at congestionState 2. the cwnd: 17408
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 17920
+dup 3 occurs at congestionState 2. the cwnd: 17920
+
+New ack with acknowledge = 81920 at congestionStates 2
+Duplicate in C_FAST_RECOVERY
+Packet sent ok? 0 because cwnd = 18432
+dup 3 occurs at congestionState 2. the cwnd: 18432
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 1496837001
+----------------------> timeout(send): 165952001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 1662789001
+----------------------> timeout(send): 331904001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 1994693001
+----------------------> timeout(send): 663808001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 2658501001
+----------------------> timeout(send): 1327616001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 3986117001
+----------------------> timeout(send): 2655232001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 6641349001
+----------------------> timeout(send): 5310464001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 11951813001
+----------------------> timeout(send): 10620928001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 22572741001
+----------------------> timeout(send): 21241856001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 43814597001
+----------------------> timeout(send): 42483712001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 86298309001
+----------------------> timeout(send): 84967424001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 171265733001
+----------------------> timeout(send): 169934848001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 341200581001
+----------------------> timeout(send): 339869696001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512
+TIme out occurs at Already acknowledged is: 81920. Sending 81920 at time: 681070277001
+----------------------> timeout(send): 679739392001
+Packet sent ok? 1 because cwnd = 512
+Packet sent ok? 0 because cwnd = 512

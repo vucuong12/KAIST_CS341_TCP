@@ -259,7 +259,7 @@ protected:
 						break;
 				}
 				if(write_byte < 0){
-					//fprintf(pFile, "DMDMDMDDM \n");
+					fprintf(pFile, "DMDMDMDDM %d \n", loop);
 					//fprintf(pFile, "dem of return value -1 write is %d\n",++dem );
 					break;
 				}
