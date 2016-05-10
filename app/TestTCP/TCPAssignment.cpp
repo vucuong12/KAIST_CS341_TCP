@@ -420,7 +420,10 @@ int TCPAssignment::tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS = fal
       break;
     } else {
       socketList[socIndex].sendTime[socketList[socIndex].sendBufHead]++;
-      ////////printf("Start tryToFreeSendingBuf\n");
+      if (processNumber == 1){  
+        fprintf(pFile, "Tang sendTime for %d sendTime = %d\n", socketList[socIndex].sendBufHead, socketList[socIndex].sendTime[socketList[socIndex].sendBufHead]);
+
+      }
       socketList[socIndex].sendFrom[socketList[socIndex].sendBufHead] = this->getHost()->getNetworkSystem()->getCurrentTime ();
       ////////printf("Start tryToFreeSendingBuf\n");
       socketList[socIndex].sendBufHead = add(socketList[socIndex].sendBufHead, sendLength);
@@ -663,13 +666,14 @@ void TCPAssignment::syscall_write(UUID syscallUUID, int pid, int fd, u8* buf, u3
   socketList[socIndex].hasSend = true;
   if (socketList[socIndex].sendTime == NULL){
     socketList[socIndex].sendTime = (int*) malloc(SEND_BUF_SIZE * sizeof(int*));
+    for (int i = 0; i < (int)SEND_BUF_SIZE;i++){
+      socketList[socIndex].sendTime[i] = 0;
+    }
   }
   if (socketList[socIndex].sendFrom == NULL){
     socketList[socIndex].sendFrom = (Time*) malloc(SEND_BUF_SIZE * sizeof(Time*));
   }
-  for (int i = 0; i < (int)SEND_BUF_SIZE;i++){
-    socketList[socIndex].sendTime[i] = 0;
-  }
+  
   //////////printf("Write function with sendLength %d\n", sendLength);
 
   // If there is enough buffer to hold requested chunk
@@ -1473,8 +1477,16 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       int startSendPos = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
       ////////printf("---->New ack with state %d and ssthresh %d\n", socketList[socIndex].congestionState, socketList[socIndex].ssthresh);
       // If this ACK is the for a non-retransmitted packet
+      if (processNumber == 1){
+        fprintf(pFile,"sendTime = %d pos in buffer = %d\n", socketList[socIndex].sendTime[startSendPos] == 1, startSendPos);
+      }  
+        
+      
       if (socketList[socIndex].hasSend && socketList[socIndex].sendTime[startSendPos] == 1){
         socketList[socIndex].lastRTT = this->getHost()->getNetworkSystem()->getCurrentTime () - socketList[socIndex].sendFrom[startSendPos];
+        if (processNumber == 1){
+          fprintf(pFile, "lastRTT = %llu\n", socketList[socIndex].lastRTT);
+        }
         if (socketList[socIndex].estimatedRTT == 0){
           socketList[socIndex].estimatedRTT = socketList[socIndex].lastRTT;
         } else {
@@ -1482,8 +1494,13 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
           socketList[socIndex].devRTT = calculateDevRTT(socIndex);
         }
       }
+
       //Create more space in the sending buffer
-      
+      //Free the firstSending
+      socketList[socIndex].sendTime[startSendPos] = 0;
+      if (processNumber == 1){
+        fprintf(pFile,"free the first Sending %d\n", startSendPos);
+      }
       socketList[socIndex].sendBufLength -= (acknowledge - socketList[socIndex].firstSending);
       socketList[socIndex].firstSending = acknowledge;
       //If all on-fly packets are already sent
