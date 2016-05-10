@@ -154,6 +154,8 @@ class TCPAssignment : public HostModule, public NetworkModule, public SystemCall
 {
 private:
   FILE *pFile;
+  int count = 0;
+  int demAppend = 0;
   int processNumber = 0;
   int demWrite = 0;
   int demSocket = 0;
