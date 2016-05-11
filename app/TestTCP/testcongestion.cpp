@@ -231,9 +231,11 @@ int TestCongestion_Accept::processNumber = 0;
 class TestCongestion_Connect : public SystemCallApplication, private TCPApplication
 {
 public:
+	static int processNumber;
   TestCongestion_Connect(Host* host, const std::unordered_map<std::string, std::string> &env) : SystemCallApplication(host), TCPApplication(this)
 {
     this->env = env;
+
 }
 protected:
   std::unordered_map<std::string, std::string> env;
@@ -241,7 +243,7 @@ protected:
   void E_Main()
   {
     FILE * pFile;
-    pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testConnect.txt","w");
+    
     long connect_time = atol(env["CONNECT_TIME"].c_str());
     usleep(connect_time);
 
@@ -289,6 +291,15 @@ protected:
     int loop = 0;
     int dem = 0;
     long total_size = 0;
+    processNumber++;
+   	//pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testConnect.txt","w");
+    if (processNumber == 1){
+      pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testConnect1.txt","w");
+    } else {
+      pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testConnect2.txt","w");
+    }
+    
+    int processNum = processNumber;
     while(!stop)
     {
       for(int k=0; k<buffer_size; k++)
@@ -312,6 +323,8 @@ protected:
         if(write_byte < 0){
           //fprintf(pFile, "DMDMDMDDM %d \n", loop);
           ////fprintf(pFile, "dem of return value -1 write is %d\n",++dem );
+          //fprintf(pFile, "DMDMDMDDM %d \n", loop);
+          
           break;
         }
       }
@@ -355,9 +368,13 @@ protected:
     ////fprintf(pFile, "loop_count is %d\n", loop_count);
     ////fprintf(pFile, "Is sent %d\n", total_size);
     close(client_socket);
+    fprintf(pFile, "LOOP is %d\n",loop );
     fclose(pFile);
+    
   }
 };
+
+int TestCongestion_Connect::processNumber = 0;
 
 TEST_F(TestEnv_Congestion0, TestCongestion0)
 {
@@ -441,7 +458,7 @@ TEST_F(TestEnv_Congestion1, TestCongestion1)
   char str_buffer[128];
   snprintf(str_buffer, sizeof(str_buffer), "%u.%u.%u.%u", server_ip[0], server_ip[1], server_ip[2], server_ip[3]);
   std::string connect_addr(str_buffer);
-
+  //num_client = 4;
   TestCongestion_Connect** clients = new TestCongestion_Connect*[num_client];
   TestCongestion_Accept** servers = new TestCongestion_Accept*[num_client];
 

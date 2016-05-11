@@ -107,6 +107,7 @@ struct Socket {
 
   UUID currentTimerId = 0;
   bool isWaitingTimeout = false;
+  Time timeSend = 0;
 
   //For congestion control
   u32 cwnd = MSS;
@@ -154,6 +155,8 @@ class TCPAssignment : public HostModule, public NetworkModule, public SystemCall
 {
 private:
   FILE *pFile;
+  int addTime = 0;
+  int removeTime = 0;
   int count = 0;
   int demAppend = 0;
   int processNumber = 0;

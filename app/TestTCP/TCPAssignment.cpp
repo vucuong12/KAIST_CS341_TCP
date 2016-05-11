@@ -13,6 +13,7 @@
 #include <E/Networking/E_Packet.hpp>
 #include <E/Networking/E_NetworkUtil.hpp>
 #include "TCPAssignment.hpp"
+#include <string>
 
 namespace E
 {
@@ -236,17 +237,22 @@ TCPAssignment::~TCPAssignment()
 {
 
 }
-
+template <typename T>
+std::string NumberToString ( T Number )
+{
+  std::stringstream ss;
+  ss << Number;
+  return ss.str();
+}
 void TCPAssignment::initialize()
 { totalProcess++;
-  if (totalProcess == 1){
-    pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/mainlog1.txt","w");  
-  } else {
-    pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/mainlog2.txt","w");  
-  }
-  
+  std::string path("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/mainlog");
+  std::string number = NumberToString(totalProcess);
+  path = path + number;
+  pFile = fopen (path.c_str(),"w");
+  //pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/mainlog.txt","a");  
   srand (time(NULL));
-  
+  fprintf(pFile, "%s\n", path.c_str());
   processNumber = totalProcess;
 }
 
@@ -344,7 +350,7 @@ int TCPAssignment::tryToSendPacket(int socIndex, u8* buf, u32 length, bool isFor
   ////printf("--> cwnd = %08x\n", cwnd);
   
   if (mySocket.nextSend + length <= mySocket.firstSending + min(window, cwnd)){
-    fprintf(pFile, "---------> SEND ONE PACKET. isFastRetransmit? %d \n", isFastRetransmit);
+    //fprintf(pFile, "---------> SEND ONE PACKET. isFastRetransmit? %d \n", isFastRetransmit);
     //Prepare the packet to send
     u32 sourceIP = htonl(mySocket.tcpUniqueID.sourceIP);
     u32 desIP = htonl(mySocket.tcpUniqueID.desIP);
@@ -371,9 +377,13 @@ int TCPAssignment::tryToSendPacket(int socIndex, u8* buf, u32 length, bool isFor
     sendPacket->writeData(34 + 20, buf, length);
 
     this->sendPacket ("IPv4", sendPacket);
-    if (processNumber == 1) {
-      //fprintf(pFile, "Already acknowledged is: %lu. Sending %lu at time: %llu\n", (unsigned long)(socketList[socIndex].firstSending - startSend), socketList[socIndex].nextSend - startSend, this->getHost()->getNetworkSystem()->getCurrentTime ());
-      ////fprintf(pFile, "next + length: %lu. first + window: %lu\n", mySocket.nextSend + length , mySocket.firstSending + min(window, cwnd) );
+    if (1 == 1) {
+      ////fprintf(pFile, "Already acknowledged is: %lu. Sending %lu at time: %llu\n", (unsigned long)(socketList[socIndex].firstSending - startSend), socketList[socIndex].nextSend - startSend, this->getHost()->getNetworkSystem()->getCurrentTime ());
+      //////fprintf(pFile, "next + length: %lu. first + window: %lu\n", mySocket.nextSend + length , mySocket.firstSending + min(window, cwnd) );
+      if (processNumber == 1){
+          fprintf(pFile, "^^^^^\n" );
+        }
+      fprintf(pFile, "%d.Send one packet with min (cwnd,window) = %d. pos = %lu\n", processNumber, min(window, cwnd), socketList[socIndex].nextSend - startSend + 1);
     }
     
     if (!isFastRetransmit && socketList[socIndex].firstSending == socketList[socIndex].nextSend){
@@ -383,16 +393,20 @@ int TCPAssignment::tryToSendPacket(int socIndex, u8* buf, u32 length, bool isFor
       if (socketList[socIndex].lastRTT != 0){
         timeout = socketList[socIndex].estimatedRTT + 4 * socketList[socIndex].devRTT;
         //timeout = SIMPLE_TIME_OUT;
+        timeout++;
       }
       if (isForTimeout){
-        timeout = socketList[socIndex].currentTimeout;
+        timeout = socketList[socIndex].currentTimeout * 2;
+        socketList[socIndex].currentTimeout = timeout;
       }else {
         socketList[socIndex].currentTimeout = timeout;  
       }
-      if (processNumber == 1){
-        //fprintf(pFile, "----------------------> timeout(send): %llu\n", timeout + 1);
+      if (1 == 1){
+        fprintf(pFile, "----------------------> timeout(send) at %llu with timeout: %llu. add = %d, remove = %d\n",this->getHost()->getNetworkSystem()->getCurrentTime (), timeout, addTime, removeTime);
       }
-      socketList[socIndex].currentTimerId = this->addTimer(payload, timeout + 1);
+      
+      socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
+      addTime++;fprintf(pFile, "add2Send = %d, remove2 = %d\n", addTime, removeTime);
     }
     //Update the buffer
     socketList[socIndex].nextSend += length;
@@ -409,8 +423,8 @@ int TCPAssignment::tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS = fal
   ////////printf("Start tryToFreeSendingBuf\n");
   u8* buf = socketList[socIndex].sendBuf;
   int sent = 0;
-  //fprintf(pFile, "Packet on-fly %lu\n", (unsigned long)(socketList[socIndex].nextSend - socketList[socIndex].firstSending));
-  //fprintf(pFile, "sendBufLength %lu\n",(socketList[socIndex].sendBufLength));
+  ////fprintf(pFile, "Packet on-fly %lu\n", (unsigned long)(socketList[socIndex].nextSend - socketList[socIndex].firstSending));
+  ////fprintf(pFile, "sendBufLength %lu\n",(socketList[socIndex].sendBufLength));
   while (socketList[socIndex].sendBufLength > 0 
     && (socketList[socIndex].nextSend - socketList[socIndex].firstSending < socketList[socIndex].sendBufLength)){
     u32 remainData = socketList[socIndex].sendBufLength - (socketList[socIndex].nextSend - socketList[socIndex].firstSending);
@@ -419,14 +433,14 @@ int TCPAssignment::tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS = fal
       for (int k = 1; k <= 1024; k++){
           
         if (1 <= 140000) {
-          fprintf(pFile, "%04x nextSend = %lu\n", buf[socketList[socIndex].sendBufHead + k - 1], socketList[socIndex].nextSend);  
+          //fprintf(pFile, "%04x nextSend = %lu\n", buf[socketList[socIndex].sendBufHead + k - 1], socketList[socIndex].nextSend);  
         }
         
       }
     }
     int temp = tryToSendPacket(socIndex, &buf[socketList[socIndex].sendBufHead], sendLength, isForTimeout, freeOnlyFirstMSS);
     if (processNumber == 1) {
-      //fprintf(pFile, "Packet sent ok? %d because cwnd = %d\n", (temp != -1), socketList[socIndex].cwnd);
+      ////fprintf(pFile, "Packet sent ok? %d because cwnd = %d\n", (temp != -1), socketList[socIndex].cwnd);
     }
     ////////////printf("Packet on-fly %lu\n", (unsigned long)(socketList[socIndex].nextSend - socketList[socIndex].firstSending));
     ////////////printf("sendBufLength %lu\n", (unsigned long)(socketList[socIndex].sendBufLength));
@@ -436,7 +450,7 @@ int TCPAssignment::tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS = fal
     } else {
       socketList[socIndex].sendTime[socketList[socIndex].sendBufHead]++;
       if (processNumber == 1){  
-        //fprintf(pFile, "Tang sendTime for %d sendTime = %d\n", socketList[socIndex].sendBufHead, socketList[socIndex].sendTime[socketList[socIndex].sendBufHead]);
+        ////fprintf(pFile, "Tang sendTime for %d sendTime = %d\n", socketList[socIndex].sendBufHead, socketList[socIndex].sendTime[socketList[socIndex].sendBufHead]);
 
       }
       socketList[socIndex].sendFrom[socketList[socIndex].sendBufHead] = this->getHost()->getNetworkSystem()->getCurrentTime ();
@@ -702,7 +716,7 @@ void TCPAssignment::syscall_write(UUID syscallUUID, int pid, int fd, u8* buf, u3
     for (int k = 1; k <= length; k++){
       count++;
       if (count <= 140000) {
-        //fprintf(pFile, "%04x\n", socketList[socIndex].sendBuf[socketList[socIndex].sendBufTail + k - 1]);  
+        ////fprintf(pFile, "%04x\n", socketList[socIndex].sendBuf[socketList[socIndex].sendBufTail + k - 1]);  
       }
       
     }
@@ -1037,7 +1051,9 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       //socketList[socIndex].socketState = S_CLOSED;
       TimerPayload* payload = (struct TimerPayload*) malloc(sizeof(struct TimerPayload));
       payload->socIndex = socIndex;
+     
       socketList[socIndex].currentTimerId = this->addTimer(payload, TIME_WAIT);
+      addTime++;fprintf(pFile, "add20 = %d, remove2 = %d\n", addTime, removeTime);
 
     } else if (socketList[socIndex].socketState == S_FIN_WAIT_1){
       //Fast close (simultaneous close), return an ACK and change to S_CLOSING
@@ -1250,7 +1266,9 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       //socketList[closingSocket].socketState = S_CLOSED;
       TimerPayload* payload = (struct TimerPayload*) malloc(sizeof(struct TimerPayload));
       payload->socIndex = closingSocket;
+      
       socketList[closingSocket].currentTimerId = this->addTimer(payload, TIME_WAIT);
+      addTime++;fprintf(pFile, "add21 = %d, remove2 = %d\n", addTime, removeTime);
       return;
     }
 
@@ -1414,13 +1432,13 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 
     //If this ACK is acknowleging something
     u32 acknowledge = htonl(tcpHeader.acknowledge);
-    fprintf(pFile, "111111. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
+    //fprintf(pFile, "111111. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
     socketList[socIndex].peerWindow = htons(tcpHeader.window);
     if (acknowledge < socketList[socIndex].firstSending || acknowledge > socketList[socIndex].firstSending + MSS){
       return;
     }
     if (processNumber == 1){
-      //fprintf(pFile, "\nNew ack with acknowledge = %lu at congestionStates %d\n", acknowledge - startSend, socketList[socIndex].congestionState);
+      ////fprintf(pFile, "\nNew ack with acknowledge = %lu at congestionStates %d\n", acknowledge - startSend, socketList[socIndex].congestionState);
     }
     //Duplicate ACK event
     
@@ -1435,24 +1453,30 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       } else if (socketList[socIndex].congestionState == C_FAST_RECOVERY){
         //Remain state
         if (processNumber == 1){
-          //fprintf(pFile, "Duplicate in C_FAST_RECOVERY\n" );  
+          ////fprintf(pFile, "Duplicate in C_FAST_RECOVERY\n" );  
         }
         
         socketList[socIndex].cwnd += MSS;
         // socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
         // socketList[socIndex].nextSend = socketList[socIndex].firstSending;
-        fprintf(pFile, "HEHEHE\n" );
+        //fprintf(pFile, "HEHEHE\n" );
         tryToFreeSendingBuf(socIndex);
       }
     } else {
       socketList[socIndex].dupACKcount = 0;
     }
-    fprintf(pFile, "222222. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
+    //fprintf(pFile, "222222. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
     //dupACKcount == 3 event
     if (socketList[socIndex].dupACKcount == 3){
-      if (processNumber == 1){
+      if (1 == 1){
         if (1 < 250){
-          //fprintf(pFile, "dup 3 occurs at congestionState %d. ", socketList[socIndex].congestionState);//std::cout << this->getHost()->getNetworkSystem()->getCurrentTime () << std::endl;
+          if (1 == 1){
+            if (processNumber == 1){
+          fprintf(pFile, "^^^^^\n" );
+        }
+            fprintf(pFile, "%d.dup 3 with cwnd = %d. state = %d\n",processNumber, socketList[socIndex].cwnd, socketList[socIndex].congestionState); //std::cout << this->getHost()->getNetworkSystem()->getCurrentTime () << std::endl;
+          }
+          ////fprintf(pFile, "dup 3 occurs at congestionState %d. ", socketList[socIndex].congestionState);//std::cout << this->getHost()->getNetworkSystem()->getCurrentTime () << std::endl;
         }  
       }
       
@@ -1483,12 +1507,12 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       }
       if (processNumber == 1){
         if (1 < 250){
-          //fprintf(pFile, "the cwnd: %d\n", socketList[socIndex].cwnd);//std::cout << this->getHost()->getNetworkSystem()->getCurrentTime () << std::endl;
+          ////fprintf(pFile, "the cwnd: %d\n", socketList[socIndex].cwnd);//std::cout << this->getHost()->getNetworkSystem()->getCurrentTime () << std::endl;
         }  
       }
     }
     if (socketList[socIndex].firstSending > socketList[socIndex].nextSend){
-        fprintf(pFile, "BBBBBB. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
+        //fprintf(pFile, "BBBBBB. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
       }
     if (processNumber == 1){
       if (acknowledge > socketList[socIndex].firstSending && acknowledge <= socketList[socIndex].firstSending + MSS){
@@ -1504,19 +1528,22 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       int startSendPos = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
       //printf("---->New ack with state %d and ssthresh %d\n", socketList[socIndex].congestionState, socketList[socIndex].ssthresh);
       if (acknowledge - startSend + 1 == 132609){
-        fprintf(pFile, "AAAAAAA. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
+        //fprintf(pFile, "AAAAAAA. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
       }
       
       // If this ACK is the for a non-retransmitted packet
       if (1 == 1){
-        //fprintf(pFile,"sendTime = %d pos in buffer = %d\n", socketList[socIndex].sendTime[startSendPos] == 1, startSendPos);
+        if (processNumber == 1){
+          fprintf(pFile, "^^^^^\n" );
+        }
+        fprintf(pFile,"%d. ---> new ack sendTime = %d pos in buffer = %d at %llu\n",processNumber, socketList[socIndex].sendTime[startSendPos] == 1, startSendPos, this->getHost()->getNetworkSystem()->getCurrentTime ());
       }  
         
       
       if (socketList[socIndex].hasSend && socketList[socIndex].sendTime[startSendPos] == 1){
         socketList[socIndex].lastRTT = this->getHost()->getNetworkSystem()->getCurrentTime () - socketList[socIndex].sendFrom[startSendPos];
         if (processNumber == 1){
-          //fprintf(pFile, "lastRTT = %llu\n", socketList[socIndex].lastRTT);
+          ////fprintf(pFile, "lastRTT = %llu\n", socketList[socIndex].lastRTT);
         }
         if (socketList[socIndex].estimatedRTT == 0){
           socketList[socIndex].estimatedRTT = socketList[socIndex].lastRTT;
@@ -1530,15 +1557,17 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       //Free the firstSending
       socketList[socIndex].sendTime[startSendPos] = 0;
       if (processNumber == 1){
-        //fprintf(pFile,"free the first Sending %d\n", startSendPos);
+        ////fprintf(pFile,"free the first Sending %d\n", startSendPos);
       }
       socketList[socIndex].sendBufLength -= (acknowledge - socketList[socIndex].firstSending);
       socketList[socIndex].firstSending = acknowledge;
-      fprintf(pFile, "FINAL. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
+      //fprintf(pFile, "FINAL. firstSending = %lu nextSend = %lu\n", socketList[socIndex].firstSending, socketList[socIndex].nextSend );
       //If all on-fly packets are already sent
       if (socketList[socIndex].firstSending == socketList[socIndex].nextSend){
+        removeTime++;fprintf(pFile, "add10 = %d, remove1 = %d\n", addTime, removeTime);
         this->cancelTimer(socketList[socIndex].currentTimerId);
       } else {
+        removeTime++;fprintf(pFile, "add11 = %d, remove1 = %d\n", addTime, removeTime);
         this->cancelTimer(socketList[socIndex].currentTimerId);
         TimerPayload* payload = (struct TimerPayload*) malloc(sizeof(struct TimerPayload));
         payload->socIndex = socIndex;
@@ -1546,12 +1575,15 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         if (socketList[socIndex].lastRTT != 0){
           timeout = socketList[socIndex].estimatedRTT + 4 * socketList[socIndex].devRTT;
           //timeout = SIMPLE_TIME_OUT;
+          timeout++;
         }
         socketList[socIndex].currentTimeout = timeout;        
-        if (processNumber == 1){
-        //fprintf(pFile, "----------------------> timeout: %llu\n", timeout + 1);
-      }
-        socketList[socIndex].currentTimerId = this->addTimer(payload, timeout + 1);
+        if (1 == 1){
+          fprintf(pFile, "----------------------> timeout (new ack) at : %llu with timeout %llu. Add = %d, remove = %d\n", this->getHost()->getNetworkSystem()->getCurrentTime (), timeout, addTime, removeTime);
+        }
+        
+        socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
+        addTime++;fprintf(pFile, "add2newack = %d, remove2 = %d\n", addTime, removeTime);
       }
 
       if (socketList[socIndex].congestionState == C_SLOW_START){
@@ -1578,9 +1610,9 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         socketList[socIndex].cwnd = socketList[socIndex].ssthresh;
         socketList[socIndex].dupACKcount = 0;       
       }
-      fprintf(pFile, "sendBufLength %lu\n",(socketList[socIndex].sendBufLength));
-      fprintf(pFile, "cwnd %lu\n",(socketList[socIndex].cwnd));
-      fprintf(pFile, "window %lu\n",(socketList[socIndex].peerWindow));
+      //fprintf(pFile, "sendBufLength %lu\n",(socketList[socIndex].sendBufLength));
+      //fprintf(pFile, "cwnd %lu\n",(socketList[socIndex].cwnd));
+      //fprintf(pFile, "window %lu\n",(socketList[socIndex].peerWindow));
       //-------------------
       tryToFreeSendingBuf(socIndex);
       //Then unblock write function if possible
@@ -1602,7 +1634,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         for (int k = 1; k <= socketList[socIndex].writeLength; k++){
           count++;
           if (count <= 140000) {
-            //fprintf(pFile, "%04x\n", socketList[socIndex].sendBuf[socketList[socIndex].sendBufTail + k - 1]);  
+            ////fprintf(pFile, "%04x\n", socketList[socIndex].sendBuf[socketList[socIndex].sendBufTail + k - 1]);  
           }
           
         }
@@ -1639,26 +1671,31 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 
 void TCPAssignment::timerCallback(void* payload)
 { 
-  if (processNumber == 1){
-    //fprintf(pFile, "TIme out occurs at "); //std::cout << this->getHost()->getNetworkSystem()->getCurrentTime () << std::endl;
-  }
+  
   struct TimerPayload* message = (struct TimerPayload*) payload;
   int socIndex = message->socIndex;
+  
   Socket mySocket = socketList[socIndex];
   //0.Deal with S_TIME_WAIT
   if (mySocket.socketState == S_TIME_WAIT){
-    //////////////printf("CLOSE IT \n");
+    fprintf(pFile, "CLOSE IT \n");
     socketList[socIndex].socketState  = S_CLOSED;
     this->returnSystemCall(socketList[socIndex].closeId, 0);
     return;
   }
-
-
+  if (1 == 1){
+    if (processNumber == 1){
+          fprintf(pFile, "^^^^^\n" );
+        }
+    fprintf(pFile, "%d.Timeout with cwnd = %d. state = %d at %llu\n",processNumber, socketList[socIndex].cwnd, socketList[socIndex].congestionState, this->getHost()->getNetworkSystem()->getCurrentTime ()); 
+    //std::cout << this->getHost()->getNetworkSystem()->getCurrentTime () << std::endl;
+  }
+  fprintf(pFile, "%d.Done timeout !!! \n", processNumber);
   //1.Deal with congestion control
   socketList[socIndex].ssthresh = max(MSS,socketList[socIndex].cwnd / 2);       //////////////////////////////////
   socketList[socIndex].cwnd = MSS;                                              //Same for all congestion states//
   socketList[socIndex].dupACKcount = 0;                                         //////////////////////////////////
-
+  
   if (socketList[socIndex].congestionState == C_SLOW_START){
     //Remain state
   } else if (socketList[socIndex].congestionState == C_CONGESTION_AVOIDANCE)  { 
@@ -1669,20 +1706,23 @@ void TCPAssignment::timerCallback(void* payload)
   }
 
   //2. Retransmit
+  removeTime++;fprintf(pFile, "add12 = %d, remove1 = %d\n", addTime, removeTime);
   this->cancelTimer(socketList[socIndex].currentTimerId);
-  socketList[socIndex].isWaitingTimeout = false;
-  message->socIndex = socIndex;
-  Time timeout = (Time)(socketList[socIndex].currentTimeout * 2);
+  //socketList[socIndex].isWaitingTimeout = false;
+  //message->socIndex = socIndex;
+  //Time timeout = (Time)(socketList[socIndex].currentTimeout * 2);
   //Time timeout = SIMPLE_TIME_OUT
-  socketList[socIndex].currentTimeout = timeout;
-  socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
-  //socketList[socIndex].sendBufLength += (mySocket.nextSend - mySocket.firstSending);
+  //socketList[socIndex].currentTimeout = timeout;
+
+  //socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
+  //addTime++;fprintf(pFile, "add2 = %d, remove2 = %d\n", addTime, removeTime);
   socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
   socketList[socIndex].nextSend = socketList[socIndex].firstSending;
   tryToFreeSendingBuf(socIndex, false, true);
   if (processNumber == 1){
-    ////fprintf(pFile, "Done timeout\n");
+    //////fprintf(pFile, "Done timeout\n");
   }
+
 }
 
 }
