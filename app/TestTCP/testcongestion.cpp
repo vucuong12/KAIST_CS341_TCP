@@ -15,6 +15,7 @@
 #include <E/Networking/TCP/E_TCPApplication.hpp>
 #include <E/Networking/TCP/E_TCPSolution.hpp>
 #include <E/E_TimeUtil.hpp>
+#include <string>
 
 #include <arpa/inet.h>
 
@@ -28,6 +29,14 @@ extern "C"
 }
 
 using namespace E;
+
+template <typename T>
+std::string NumberToString ( T Number )
+{
+  std::stringstream ss;
+  ss << Number;
+  return ss.str();
+}
 
 class TestCongestion_Accept : public SystemCallApplication, private TCPApplication
 {
@@ -113,15 +122,20 @@ protected:
     int dem = 0;
     FILE * pFile;
     
+    FILE* pFile1;
     
     //////fprintf(pFile, "is Send = %d \n", is_send);
     bool fail = false;
     processNumber++;
-    if (processNumber == 1){
-      pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testAccept1.txt","w");
-    } else {
-      pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testAccept2.txt","w");
-    }
+    std::string path("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/acceptso");
+    std::string number = NumberToString(processNumber);
+    path = path + number;
+    pFile = fopen (path.c_str(),"w");
+    ///////////////
+    std::string path1("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/accept");
+    std::string number1 = NumberToString(processNumber);
+    path1 = path1 + number1;
+    pFile1 = fopen (path1.c_str(),"w");
     ////fprintf(pFile, "processNumber = %d \n", processNumber);
     struct timeval dn;
     // ret = gettimeofday(&dn, 0);
@@ -175,14 +189,14 @@ protected:
             ////fprintf(pFile, "given %08x read %08x\n", send_buffer[j], recv_buffer[j]);
             ////fprintf(pFile, "processNumber %d\n", processNumber);
             count++;
-            if (1 <= 140000){
-              //fprintf(pFile, "%04x\n", send_buffer[j]);  
+            if (1 < 300000){
+              fprintf(pFile, "haha %04x\n", send_buffer[j]);  
               if (send_buffer[j] != recv_buffer[j]){
-                fprintf(pFile, "---> %04x %04x\n", send_buffer[j], recv_buffer[j]);
+                //fprintf(pFile1, "---> %04x %04x\n", send_buffer[j], recv_buffer[j]);
                 //fprintf(pFile, "pro: %d given %08x read %08x\n",processNum, send_buffer[j], recv_buffer[j]);
                 fail = true;
               } else  {
-                //fprintf(pFile, "%04x\n", send_buffer[j]);
+                //fprintf(pFile1, "%04x %04x\n", send_buffer[j], recv_buffer[j]);
                 // ret = gettimeofday(&dn, 0);
             //     //fprintf(pFile, "Time while receiving %ld\n", dn.tv_sec);
                 //fprintf(pFile, "------------------------ given %08x read %08x\n", send_buffer[j], recv_buffer[j]);
@@ -221,8 +235,9 @@ protected:
 
     close(client_fd);
     close(server_socket);
-    fprintf(pFile, "DONEEEEE receiving\n");
+    fprintf(pFile, "%d. DONE ACCEPT %d!\n", processNum, total_size);
     fclose (pFile);
+    fclose (pFile1);
   }
 };
 
@@ -292,12 +307,10 @@ protected:
     int dem = 0;
     long total_size = 0;
     processNumber++;
-   	//pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testConnect.txt","w");
-    if (processNumber == 1){
-      pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testConnect1.txt","w");
-    } else {
-      pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testConnect2.txt","w");
-    }
+   	std::string path("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/connect");
+    std::string number = NumberToString(processNumber);
+    path = path + number;
+    pFile = fopen (path.c_str(),"w");
     
     int processNum = processNumber;
     while(!stop)
@@ -368,7 +381,7 @@ protected:
     ////fprintf(pFile, "loop_count is %d\n", loop_count);
     ////fprintf(pFile, "Is sent %d\n", total_size);
     close(client_socket);
-    fprintf(pFile, "LOOP is %d\n",loop );
+    fprintf(pFile, "%d. DONE SENDING total_size: %d\n" , processNum, total_size);
     fclose(pFile);
     
   }
@@ -520,8 +533,8 @@ TEST_F(TestEnv_Congestion1, TestCongestion1)
 TEST_F(TestEnv_Congestion2, TestCongestion2)
 {
   FILE * pFile;
-  pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut1.txt","w");
-  
+  pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut2.txt","a");
+  fprintf(pFile, "START !\n" );
   std::unordered_map<std::string, std::string> accept_env;
   std::unordered_map<std::string, std::string> connect_env;
 
@@ -573,7 +586,9 @@ TEST_F(TestEnv_Congestion2, TestCongestion2)
     clients[k]->initialize();
     servers[k]->initialize();
   }
-
+  fprintf(pFile, "FINISH0 !\n");
+  fprintf(pFile, "FINISH1 !\n");
+  fclose(pFile);
   this->runTest();
 
   for(int k=0; k<num_client; k++)
@@ -584,5 +599,6 @@ TEST_F(TestEnv_Congestion2, TestCongestion2)
 
   delete[] servers;
   delete[] clients;
-  fclose(pFile);
+
+ 
 }

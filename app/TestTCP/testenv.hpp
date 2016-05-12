@@ -121,6 +121,9 @@ protected:
 
 	void runTest()
 	{
+		FILE * pFile;
+    pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut1.txt","a");
+		
 		netSystem.run(TimeUtil::makeTime(1000, TimeUtil::SEC));
 
 		host1->cleanUp();
@@ -128,6 +131,8 @@ protected:
 		interface2->finalize();
 		interface->finalize();
 		netSystem.run(TimeUtil::makeTime(2000, TimeUtil::SEC));
+		fprintf(pFile, "Inside runTest TestEnv1\n" );
+		fclose(pFile);
 	}
 };
 
@@ -230,6 +235,9 @@ protected:
 
 	void runTest()
 	{
+		FILE * pFile;
+    pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut1.txt","a");
+		fprintf(pFile, "Inside runTest TestEnv2\n" );
 		netSystem.run(TimeUtil::makeTime(1000, TimeUtil::SEC));
 
 		host1->cleanUp();
@@ -237,6 +245,7 @@ protected:
 		interface2->finalize();
 		interface->finalize();
 		netSystem.run(TimeUtil::makeTime(2000, TimeUtil::SEC));
+		fclose(pFile);
 	}
 };
 
@@ -373,16 +382,27 @@ protected:
 
 	void runTest()
 	{
+		FILE * pFile;
+    pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/testOut2.txt","a");
+		fprintf(pFile, "Inside runTest\n" );
+		
 		netSystem.run(TimeUtil::makeTime(TIMEOUT, TimeUtil::SEC));
 
 		server_host->cleanUp();
+		
+		
 		for(int k=0; k<num_client; k++)
 			client_hosts[k]->cleanUp();
 
 		interface_server->finalize();
+
 		for(int k=0; k<num_client; k++)
 			interface_clients[k]->finalize();
+		fprintf(pFile, "Inside runTest1\n" );
+		fclose(pFile);
 		netSystem.run(TimeUtil::makeTime(1000 + TIMEOUT, TimeUtil::SEC));
+		
+		
 	}
 };
 

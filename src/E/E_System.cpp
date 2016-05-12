@@ -100,8 +100,10 @@ void System::run(Time till)
 {
 	std::vector<TimerContainer*> sameTime;
 	std::unique_lock<std::mutex> lock(this->getSystemLock(), std::defer_lock);
+	
 
 	lock.lock();
+
 	while(true)
 	{
 		while(true)
@@ -119,6 +121,7 @@ void System::run(Time till)
 			if(!found)
 				break;
 		}
+
 		if(timerQueue.empty())
 		{
 			/*
@@ -170,6 +173,7 @@ void System::run(Time till)
 			std::random_shuffle(sameTime.begin(), sameTime.end());
 		}
 #endif
+
 		this->currentTime = current->wakeup;
 		//for(TimerContainer* container : sameTime)
 		{
@@ -191,6 +195,7 @@ void System::run(Time till)
 			delete container;
 		}
 	}
+	
 	lock.unlock();
 }
 

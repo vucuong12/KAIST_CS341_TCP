@@ -33,7 +33,7 @@ static const u32 SEND_BUF_SIZE = 51200;
 static const Time SIMPLE_TIME_OUT = 1000000000;
 static const Real ALPHA = (0.125);
 static const Real BETA = (0.25);
-static const Time TIME_WAIT = 30000000000;
+static const Time TIME_WAIT = 3000000000;
 
 struct TcpUniqueID {
   u32 sourceIP = 0;
@@ -155,6 +155,7 @@ class TCPAssignment : public HostModule, public NetworkModule, public SystemCall
 {
 private:
   FILE *pFile;
+  bool isActive;
   int addTime = 0;
   int removeTime = 0;
   int count = 0;
