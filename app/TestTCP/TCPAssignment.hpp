@@ -154,16 +154,7 @@ struct establishedSockets {
 class TCPAssignment : public HostModule, public NetworkModule, public SystemCallInterface, private NetworkLog, private TimerModule
 {
 private:
-  FILE *pFile;
   bool isActive;  
-  int addTime = 0;
-  int removeTime = 0;
-  int count = 0;
-  int demAppend = 0;
-  int processNumber = 0;
-  int demWrite = 0;
-  int demSocket = 0;
-  int demArrive = 0;
   int socketStart = 0;
   u32 startSend = 0;
   std::vector<Socket> socketList;

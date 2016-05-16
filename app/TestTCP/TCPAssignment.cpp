@@ -17,11 +17,6 @@
 
 namespace E
 {
-int totalProcess = 0;
-int sent = 0, sending1 = 0;
-bool isClose = false;
-u32 firstSequence = 0;
-
 //HELPER FUNCTION
 u32 min(u32 a, u32 b){
   if (a < b) return a;
@@ -49,15 +44,6 @@ int addNum(u32 a, u32 b, u32 base = 0){
 int minusNum(u32 a, u32 b, u32 base){
   if (b <= a) return a - b;
   return base - (b - a);
-}
-
-void writeTcpID(TcpUniqueID id){
-  //////////////////printf("TCP Unique ID\n");
-  //////////////////printf("Source IP: %08x\n", id.sourceIP);
-  //////////////////printf("Source Port: %04x\n", id.sourcePort);
-  //////////////////printf("Des IP: %08x\n", id.desIP);
-  //////////////////printf("Des Port: %04x\n", id.desPort);
-  //////////////////printf("\n");
 }
 
 uint64_t arrayToUINT64_inverse(const uint8_t* array, int length)
@@ -93,13 +79,6 @@ void copyBuf(u8* buf1, u8* buf2, int length){
   for (int i = 0; i < length; i++){
     buf2[i] = buf1[i];
   }
-}
-
-void writeBuf(const u8* buf, int length){
-  for (int i = 0; i < length; i++){
-    //////////////////printf("%02x ", buf[i]);
-  }
-
 }
 
 bool samePortAndIP(u16 port1, u32 IP1, u16 port2, u32 IP2){
@@ -237,23 +216,10 @@ TCPAssignment::~TCPAssignment()
 {
 
 }
-template <typename T>
-std::string NumberToString ( T Number )
-{
-  std::stringstream ss;
-  ss << Number;
-  return ss.str();
-}
+
 void TCPAssignment::initialize()
-{ totalProcess++;
-  //std::string path("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/mainlog");
-  //std::string number = NumberToString(totalProcess);
-  //path = path + number;
-  //pFile = fopen (path.c_str(),"a");
-  //pFile = fopen ("/home/vucuong12/Desktop/lab2/source_code/KENSv3/app/TestTCP/mainlog.txt","a");  
+{ 
   srand (time(NULL));
-  ////////fprintf(pFile, "%s\n", path.c_str());
-  processNumber = totalProcess;
   isActive = true;
 }
 
@@ -264,8 +230,6 @@ void TCPAssignment::finalize()
     toBeEstablishedList.clear();
     establishedList.clear();
     waitingAcceptList.clear();
-    //fprintf(pFile, "Finalize\n" );
-    //fclose(pFile);
 }
 
 int TCPAssignment::findSocket(int pid, int fd, SocketStates socketState){
@@ -344,20 +308,12 @@ bool TCPAssignment::checkValidBoundAddress(u16 expectedPort, u32 expectedIP, int
 }
 
 int TCPAssignment::tryToSendPacket(int socIndex, u8* buf, u32 length, bool isForTimeout = false, bool isFastRetransmit = false){
-  sending1 += length;
-  if (startSend == 0){
-    startSend = socketList[socIndex].firstSending;
-  }
-  
   Socket mySocket = socketList[socIndex];
   u32 window = mySocket.peerWindow;
   u32 cwnd = mySocket.cwnd;
-  //printf("------------> nextSend = %lu. Length = %lu . firstSending = %lu. min(window, cwnd) = %zu\n",
-  //  (unsigned long)mySocket.nextSend, (unsigned long)length, (unsigned long)mySocket.firstSending, min(window, cwnd) );
-  ////printf("--> cwnd = %08x\n", cwnd);
+
   
   if (mySocket.nextSend + length <= mySocket.firstSending + min(window, cwnd)){
-    //////////fprintf(pFile, "---------> SEND ONE PACKET. isFastRetransmit? %d \n", isFastRetransmit);
     //Prepare the packet to send
     u32 sourceIP = htonl(mySocket.tcpUniqueID.sourceIP);
     u32 desIP = htonl(mySocket.tcpUniqueID.desIP);
@@ -393,7 +349,6 @@ int TCPAssignment::tryToSendPacket(int socIndex, u8* buf, u32 length, bool isFor
       Time timeout = SIMPLE_TIME_OUT;
       if (socketList[socIndex].lastRTT != 0){
         timeout = socketList[socIndex].estimatedRTT + 4 * socketList[socIndex].devRTT;
-        //timeout = SIMPLE_TIME_OUT;
         timeout++;
       }
       if (isForTimeout){
@@ -402,18 +357,11 @@ int TCPAssignment::tryToSendPacket(int socIndex, u8* buf, u32 length, bool isFor
       }else {
         socketList[socIndex].currentTimeout = timeout;  
       }
-      if (1 == 1){
-        ////////fprintf(pFile, "----------------------> timeout(send) at %llu with timeout: %llu. add = %d, remove = %d\n",this->getHost()->getNetworkSystem()->getCurrentTime (), timeout, addTime, removeTime);
-      }
       
       socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
-      addTime++;//fprintf(pFile, "add2Send = %d, remove2 = %d with timeout %llu\n", addTime, removeTime, timeout);
     }
     //Update the buffer
     socketList[socIndex].nextSend += length;
-    // ////printf("Start send is %lu\n", (unsigned long) startSend);
-    
-
     return 0;
   } else {
     return -1;
@@ -421,39 +369,23 @@ int TCPAssignment::tryToSendPacket(int socIndex, u8* buf, u32 length, bool isFor
 }
 
 int TCPAssignment::tryToFreeSendingBuf(int socIndex, bool freeOnlyFirstMSS = false, bool isForTimeout = false){
-  ////////printf("Start tryToFreeSendingBuf\n");
   u8* buf = socketList[socIndex].sendBuf;
   int sent = 0;
-  ////////////fprintf(pFile, "Packet on-fly %lu\n", (unsigned long)(socketList[socIndex].nextSend - socketList[socIndex].firstSending));
-  ////////////fprintf(pFile, "sendBufLength %lu\n",(socketList[socIndex].sendBufLength));
   while (socketList[socIndex].sendBufLength > 0 
     && (socketList[socIndex].nextSend - socketList[socIndex].firstSending < socketList[socIndex].sendBufLength)){
     u32 remainData = socketList[socIndex].sendBufLength - (socketList[socIndex].nextSend - socketList[socIndex].firstSending);
     u32 sendLength = min(packetSize(), remainData);
-    
     int temp = tryToSendPacket(socIndex, &buf[socketList[socIndex].sendBufHead], sendLength, isForTimeout, freeOnlyFirstMSS);
-    if (processNumber == 1) {
-      ////////////fprintf(pFile, "Packet sent ok? %d because cwnd = %d\n", (temp != -1), socketList[socIndex].cwnd);
-    }
-    ////////////printf("Packet on-fly %lu\n", (unsigned long)(socketList[socIndex].nextSend - socketList[socIndex].firstSending));
-    ////////////printf("sendBufLength %lu\n", (unsigned long)(socketList[socIndex].sendBufLength));
-    ////////printf("Start tryToFreeSendingBuf\n");
     if (temp == -1){
       break;
     } else {
       socketList[socIndex].sendTime[socketList[socIndex].sendBufHead]++;
-      if (processNumber == 1){  
-        ////////////fprintf(pFile, "Tang sendTime for %d sendTime = %d\n", socketList[socIndex].sendBufHead, socketList[socIndex].sendTime[socketList[socIndex].sendBufHead]);
-
-      }
       socketList[socIndex].sendFrom[socketList[socIndex].sendBufHead] = this->getHost()->getNetworkSystem()->getCurrentTime ();
-      ////////printf("Start tryToFreeSendingBuf\n");
       socketList[socIndex].sendBufHead = add(socketList[socIndex].sendBufHead, sendLength);
       sent += sendLength;
       if (freeOnlyFirstMSS) break;
     }
   }
-  ////////fprintf(pFile, "Stop tryToFreeSendingBuf\n");
   return sent;
 }
 
@@ -475,7 +407,6 @@ Time TCPAssignment::calculateDevRTT(int socIndex){
 
 void TCPAssignment::syscall_socket(UUID syscallUUID, int pid, int param1, int param2){
   int newFd = this->createFileDescriptor(pid);
-  ////printf(".%d: New fd = %d\n", demSocket++, newFd);
   Socket newSocket;
   newSocket.fd = newFd;
   newSocket.pid = pid;
@@ -489,7 +420,6 @@ void TCPAssignment::syscall_socket(UUID syscallUUID, int pid, int param1, int pa
 void TCPAssignment::syscall_bind(UUID syscallUUID, int pid, int fd,struct sockaddr* address, socklen_t addLength){
   int socIndex = findSocket(pid, fd, S_CLOSED);
   if (socIndex == -1){
-    ////////////////printf("bind fail 1\n");
     this->returnSystemCall(syscallUUID, -1); 
     return;
   }
@@ -499,13 +429,10 @@ void TCPAssignment::syscall_bind(UUID syscallUUID, int pid, int fd,struct sockad
   Socket mySocket = socketList[socIndex];
   if (mySocket.isAlreadyBound && mySocket.tcpUniqueID.sourceIP == 0 && expectedIP == 0
     && mySocket.tcpUniqueID.sourceIP != expectedPort){
-    ////////////////printf("bind fail 2\n");
     this->returnSystemCall(syscallUUID, -1); 
     return;
   }
   if (!checkValidBoundAddress(expectedPort,expectedIP,fd)){
-    //////////////printf("bind fail 3\n");
-    //////////////printf("fail Port %d, failIP %08x\n", expectedPort, expectedIP);
     this->returnSystemCall(syscallUUID, -1); 
     return;
   }
@@ -514,7 +441,6 @@ void TCPAssignment::syscall_bind(UUID syscallUUID, int pid, int fd,struct sockad
   socketList[socIndex].tcpUniqueID.sourcePort = expectedPort;
   socketList[socIndex].isAlreadyBound = true;
   socketList[socIndex].fd = fd;
-  //////////////printf("sucess Port %d, sucess IP %08x\n", expectedPort, expectedIP);
   this->returnSystemCall(syscallUUID, 0);
 }
 
@@ -695,45 +621,29 @@ void TCPAssignment::syscall_write(UUID syscallUUID, int pid, int fd, u8* buf, u3
   if (socketList[socIndex].sendFrom == NULL){
     socketList[socIndex].sendFrom = (Time*) malloc(SEND_BUF_SIZE * sizeof(Time*));
   }
-  
-  //////////printf("Write function with sendLength %d\n", sendLength);
 
   // If there is enough buffer to hold requested chunk
   if (sendLength <= SEND_BUF_SIZE - socketList[socIndex].sendBufLength){
-    ////////////printf("Insize write and return immediately\n");
     socketList[socIndex].sendBufLength += sendLength;
-    
-    ////////////printf("Packet on-fly %lu\n", (unsigned long)(socketList[socIndex].nextSend - socketList[socIndex].firstSending));
-    ////////////printf("sendBufLength %lu\n", (unsigned long)(socketList[socIndex].sendBufLength));
-    copyBufWrite(buf, socketList[socIndex].sendBuf, sendLength, socketList[socIndex].sendBufTail);
-    for (int k = 1; k <= length; k++){
-      
-      if (count <= 140000) {
-        ////////////fprintf(pFile, "%04x\n", socketList[socIndex].sendBuf[socketList[socIndex].sendBufTail + k - 1]);  
-      }
-      
-    }
+     copyBufWrite(buf, socketList[socIndex].sendBuf, sendLength, socketList[socIndex].sendBufTail);
+
     socketList[socIndex].sendBufTail = add(socketList[socIndex].sendBufTail, sendLength);
     tryToFreeSendingBuf(socIndex);
     this->returnSystemCall(syscallUUID, sendLength);
   } else {
-    ////////////printf("Insize write and not return immediately");
+
     //Wait to return when there is enough buffer
     socketList[socIndex].isWaitingWrite = true;
-    //////printf("Add\n");
-
     socketList[socIndex].writeId = syscallUUID;
     socketList[socIndex].writeLength = sendLength;
     socketList[socIndex].writeBuf = buf;
   }
-  //////////printf("Stop write\n");
 }
 
 void TCPAssignment::lateClose(int socIndex, UUID syscallUUID, int pid, int fd){
   if (socketList[socIndex].socketState == S_LISTEN){
     socketList[socIndex].socketState = S_CLOSED;
     this->returnSystemCall(syscallUUID, 0);
-    //fprintf(pFile, "S_LISTEN\n" );
     socketStart++; 
     return;
   }
@@ -741,8 +651,7 @@ void TCPAssignment::lateClose(int socIndex, UUID syscallUUID, int pid, int fd){
   Socket mySocket = socketList[socIndex];
   if (mySocket.socketState == S_CLOSED){
     this->removeFileDescriptor(pid, fd);
-    this->returnSystemCall(syscallUUID, 0);
-    //fprintf(pFile, "S_CLOSED\n" );    
+    this->returnSystemCall(syscallUUID, 0);  
     socketStart++;
     return;
   }
@@ -778,7 +687,6 @@ void TCPAssignment::syscall_close(UUID syscallUUID, int pid, int fd){
   socketList[socIndex].closePid = pid;
   socketList[socIndex].closeFd = fd;
 
-  ////printf("on fly = %lu\n", (unsigned long)(socketList[socIndex].nextSend - socketList[socIndex].firstSending));
   if (socketList[socIndex].firstSending == socketList[socIndex].nextSend){
     socketList[socIndex].isWaitingClose = false;
     lateClose(socIndex, socketList[socIndex].closeId, socketList[socIndex].closePid, socketList[socIndex].closeFd);
@@ -820,58 +728,40 @@ void TCPAssignment::syscall_getpeername(UUID syscallUUID, int pid, int fd,struct
 
 void TCPAssignment::systemCallback(UUID syscallUUID, int pid, const SystemCallParameter& param)
 { 
-  //fprintf(pFile, "SYSTEM CALL\n");
-
   switch(param.syscallNumber)
   {
   case SOCKET:
-    ////////printf("--------------------------SOCKET\n");
     this->syscall_socket(syscallUUID, pid, param.param1_int, param.param2_int);
     break;
   case CLOSE:
-    isClose = true;
-    //fprintf(pFile, "--------------------------CLOSE\n");
     this->syscall_close(syscallUUID, pid, param.param1_int);
     break;
   case READ:
-    if (1 < 10) {
-     //////printf("--------------------------READ\n");
-    }
     this->syscall_read(syscallUUID, pid, param.param1_int, (u8*)param.param2_ptr, param.param3_int);
     break;
   case WRITE:
-    if(processNumber == 1){
-      //printf("--------------------------WRITE\n");
-    }
     this->syscall_write(syscallUUID, pid, param.param1_int, (u8*)param.param2_ptr, param.param3_int);
     break;
   case CONNECT:
-    //////printf("--------------------------CONNECT\n");
-    this->syscall_connect(syscallUUID, pid, param.param1_int,static_cast<struct sockaddr*>(param.param2_ptr), (socklen_t)param.param3_int);
-    //    
+    this->syscall_connect(syscallUUID, pid, param.param1_int,static_cast<struct sockaddr*>(param.param2_ptr), (socklen_t)param.param3_int);  
     break;
   case LISTEN:
-    //////printf("--------------------------LISTEN\n");
     this->syscall_listen(syscallUUID, pid, param.param1_int, param.param2_int);
     break;
   case ACCEPT:
-    //////printf("--------------------------ACCEPT\n");
     this->syscall_accept(syscallUUID, pid, param.param1_int,
         static_cast<struct sockaddr*>(param.param2_ptr),
         static_cast<socklen_t*>(param.param3_ptr));
     break;
   case BIND:
-    //////printf("--------------------------BIND\n");
     this->syscall_bind(syscallUUID, pid, param.param1_int, static_cast<struct sockaddr *>(param.param2_ptr), (socklen_t) param.param3_int);
     break;
   case GETSOCKNAME:
-    //////printf("--------------------------GETSOCKNAME\n");
     this->syscall_getsockname(syscallUUID, pid, param.param1_int,
         static_cast<struct sockaddr *>(param.param2_ptr),
         static_cast<socklen_t*>(param.param3_ptr));
     break;
   case GETPEERNAME:
-    //////printf("--------------------------GETPEERNAME\n");
     this->syscall_getpeername(syscallUUID, pid, param.param1_int,
         static_cast<struct sockaddr *>(param.param2_ptr),
         static_cast<socklen_t*>(param.param3_ptr));
@@ -879,16 +769,12 @@ void TCPAssignment::systemCallback(UUID syscallUUID, int pid, const SystemCallPa
   default:
     assert(0);
   }
-  //fprintf(pFile, "DONE SYSTEM CALL\n");
 }
 
 
 
 void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 {
-  //fprintf(pFile, "packetArrived" );
-  demArrive++;
-
   if (!isActive){
     this->freePacket(packet);
     return;
@@ -952,7 +838,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
     this->freePacket(packet);
     return;
   }
-  //fprintf(pFile, "SYN = %d ACK = %d FIN = %d with acknowledge = %lu\n", SYN, ACK, FIN, htonl(tcpHeader.acknowledge));
+  
   packet->readData(34 + headerLength, data, dataLength); //data length
   
   /*================================================================================
@@ -973,13 +859,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
     //Now we got the correct socIndex
     if (socketList[socIndex].socketState == S_ESTABLISHED){
       //S_STABLISHED state  
-      //1.Deallocate buf and variables 
-      // if (socketList[socIndex].receiveBuf)free(socketList[socIndex].receiveBuf);
-      // if (socketList[socIndex].sendBuf) free(socketList[socIndex].sendBuf);
-      // if (socketList[socIndex].sendTime) free(socketList[socIndex].sendTime);
-      // if (socketList[socIndex].sendFrom) free(socketList[socIndex].sendFrom);
-
-      //2.Send back an ACK and change it to S_CLOSE_WAIT
+      //Send back an ACK and change it to S_CLOSE_WAIT
       tempHeader = tcpHeader;
       tempHeader.desPort = tcpHeader.sourcePort;
       tempHeader.sourcePort = tcpHeader.desPort;
@@ -1019,7 +899,6 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       socketList[socIndex].socketState = S_LAST_ACK;
     } else if (socketList[socIndex].socketState == S_FIN_WAIT_2) {
       //S_FIN_WAIT_2 state
-      //////////////////printf("Client receive FIN in IN WAIT 2\n");
       //Send back an ACK
       tempHeader = tcpHeader;
       tempHeader.desPort = tcpHeader.sourcePort;
@@ -1039,20 +918,11 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       this->sendPacket ("IPv4", returnPacket1);
       //Time out
       socketList[socIndex].socketState = S_TIME_WAIT;
-      //socketList[socIndex].socketState = S_CLOSED;
       //Close after waiting
-      // free(socketList[socIndex].sendBuf);
-      // free(socketList[socIndex].receiveBuf);
-      // free(socketList[socIndex].sendTime);
-      // free(socketList[socIndex].sendFrom);
-      // this->removeFileDescriptor(socketList[socIndex].pid, socketList[socIndex].fd);
-      //this->returnSystemCall(socketList[socIndex].closeId, 0);
-      //socketList[socIndex].socketState = S_CLOSED;
       TimerPayload* payload = (struct TimerPayload*) malloc(sizeof(struct TimerPayload));
       payload->socIndex = socIndex;
      
       socketList[socIndex].currentTimerId = this->addTimer(payload, TIME_WAIT);
-      addTime++;//fprintf(pFile, "add20 = %d, remove2 = %d with timeout %llu\n", addTime, removeTime, TIME_WAIT);
 
     } else if (socketList[socIndex].socketState == S_FIN_WAIT_1){
       //Fast close (simultaneous close), return an ACK and change to S_CLOSING
@@ -1072,9 +942,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       returnPacket1->writeData(30, &(tempSourceIP),  4);
       returnPacket1->writeData(TCPStart, &tempHeader, 20);
       this->sendPacket ("IPv4", returnPacket1);
- 
       socketList[socIndex].socketState = S_CLOSING;
-      ////////////////printf("JUST CHANGE IT TO S_CLOSING\n");
     }
     //Receive FIN  // Receive FIN
   } else if (SYN && !ACK){   // Receive only SYN
@@ -1084,16 +952,12 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 
     //if the socket is just sent SYN (part of three-way-hand shake in client side)
     if (sentSynSocket != -1){
-
       socketList[sentSynSocket].threeWayHandShake++;
       if (socketList[sentSynSocket].threeWayHandShake == 2){
-        
         //Finished three way handshake
         socketList[sentSynSocket].socketState = S_ESTABLISHED;
-
         socketList[sentSynSocket].readyReceive = ntohl(tcpHeader.sequence) + 1;
         socketList[sentSynSocket].peerWindow = ntohs(tcpHeader.window);
-        //socketList[sentSynSocket].ssthresh = (ntohs(tcpHeader.window) / 2);
         //Send back ACK
         tempHeader = tcpHeader;
         tempHeader.desPort = tcpHeader.sourcePort;
@@ -1121,7 +985,6 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       }
       this->freePacket(packet);
       return;
-      
     }
 
     if (listenSocket != -1){ //If SYN is sent to a listening socket
@@ -1172,12 +1035,10 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
     newSocket.readyReceive = addNum(ntohl(tcpHeader.sequence), 1);
     newSocket.firstSending =  0;//rand() % 100000;
     newSocket.nextSend = newSocket.firstSending;
-    //newSocket.ssthresh = newSocket.peerWindow;
     socketList.push_back(newSocket);
     toBeEstablishedList[toBeEstablishedSocketsIndex].socketList.push_back(newSocket.tcpUniqueID);
 
     //Then sent back SYNACK
-
     tempHeader = tcpHeader;
     tempHeader.desPort = tcpHeader.sourcePort;
     tempHeader.sourcePort = tcpHeader.desPort;
@@ -1211,7 +1072,6 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
     socketList[socIndex].firstSending = htonl(tcpHeader.acknowledge);
 
     socketList[socIndex].nextSend = htonl(tcpHeader.acknowledge);
-    //socketList[socIndex].ssthresh = ntohs(ntohs(tcpHeader.window) / 1);
     
     //Send back ACK
     this->returnSystemCall(socketList[socIndex].connectId, 0);
@@ -1237,7 +1097,6 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
     this->sendPacket ("IPv4", returnPacket);
   } else if (!SYN && ACK){  // Receive only an ACK
     //First priority: ACK for LAST_ACK state
-    ////////fprintf(pFile, "1111\n" );
     int lastAckSocket = findSocketByTCPUniqueID(tcpUniqueID, S_LAST_ACK);
     if (lastAckSocket != -1){
       //CLOSE EVERYTHING !
@@ -1248,41 +1107,25 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       this->freePacket(packet);
       return;
     }
-    ////////fprintf(pFile, "2222\n" );
     //Also first priority: ACK for FIN_WAIT_1
     int finWait1Socket = findSocketByTCPUniqueID(tcpUniqueID, S_FIN_WAIT_1);
-    //////////////////printf("REceive ACK in FIN_WAIT_1 with finWait1Socket %d\n", finWait1Socket);
+    
     if (finWait1Socket != -1){
-      //////////////////printf("1\n");
       socketList[finWait1Socket].socketState = S_FIN_WAIT_2;
-
-      //////////////////printf("2\n");
       this->freePacket(packet);
       return;
     }
-    ////////fprintf(pFile, "3333\n" );
     //Also first priority: ACK for S_CLOSING
     int closingSocket = findSocketByTCPUniqueID(tcpUniqueID, S_CLOSING);
-    ////////////////printf("REceive ACK in S_CLOSING with S_CLOSING %d\n", closingSocket);
     if (closingSocket != -1){
-      //////////////////printf("1\n");
       socketList[closingSocket].socketState = S_TIME_WAIT;
-      // free(socketList[closingSocket].sendBuf);
-      // free(socketList[closingSocket].receiveBuf);
-      // free(socketList[closingSocket].sendTime);
-      // free(socketList[closingSocket].sendFrom);
-      // this->removeFileDescriptor(socketList[closingSocket].pid, socketList[closingSocket].fd);
-      //this->returnSystemCall(socketList[closingSocket].closeId, 0);
-      //socketList[closingSocket].socketState = S_CLOSED;
       TimerPayload* payload = (struct TimerPayload*) malloc(sizeof(struct TimerPayload));
-      payload->socIndex = closingSocket;
-      
+      payload->socIndex = closingSocket;      
       socketList[closingSocket].currentTimerId = this->addTimer(payload, TIME_WAIT);
-      addTime++;//fprintf(pFile, "add21 = %d, remove2 = %d with timeout %llu\n", addTime, removeTime, TIME_WAIT);
       this->freePacket(packet);
       return;
     }
-    ////////fprintf(pFile, "44444\n" );
+
     int sentSynSocket = findSocketByAddress(desPort, desIP, S_SYN_SENT);
     bool finishedThreeWay = true;
     //If it is an ACK in SYNACK of three-way handshake
@@ -1290,7 +1133,6 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       finishedThreeWay = false;
       socketList[sentSynSocket].threeWayHandShake++;
       socketList[sentSynSocket].peerWindow = htons(tcpHeader.window);
-      //socketList[sentSynSocket].ssthresh = ntohs(ntohs(tcpHeader.window) / 2);
       if (socketList[sentSynSocket].threeWayHandShake == 2){
         socketList[sentSynSocket].socketState = S_ESTABLISHED;
         if (socketList[sentSynSocket].threeWayHandShake == 2){
@@ -1329,7 +1171,6 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       return;
     }
 
-    ////////fprintf(pFile, "55555\n" );
     int socIndex = findSocketByTCPUniqueID(tcpUniqueID, S_ANY);
     if (socIndex == -1) {
     	this->freePacket(packet);
@@ -1376,7 +1217,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         this->returnSystemCall(myWaitingAcceptSocet.syscallUUID, socketList[newIndex].fd);
       }
     }
-    ////////fprintf(pFile, "66666\n" );
+
     //If there is data to receive
     if (dataLength > 0){
       u32 sequence = htonl(tcpHeader.sequence);
@@ -1415,9 +1256,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         u32 returnLength = min(minus(windowBase, startCanRead), socketList[socIndex].readLength);
         if (returnLength > 0) {
           //Take out (returnLength) bytes from buffer
-          ////////fprintf(pFile, "%d.Before readBuf\n", processNumber);
           read(socketList[socIndex].readBuf, returnLength, socketList[socIndex].receiveBuf, &socketList[socIndex].startCanRead);
-          ////////fprintf(pFile, "%d.After readBuf\n", processNumber);
           socketList[socIndex].rwnd += returnLength;
           socketList[socIndex].isWaitingRead = false;
           this->returnSystemCall(socketList[socIndex].readId, returnLength);
@@ -1456,8 +1295,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 
       //RTO
       int startPos = minus(socketList[socIndex].sendBufHead, (socketList[socIndex].nextSend - socketList[socIndex].firstSending));
-      int currentPos = minus(add(startPos, acknowledge - mySocket.firstSending),MSS);
-      //printf("---->New ack with state %d and ssthresh %d\n", socketList[socIndex].congestionState, socketList[socIndex].ssthresh);        
+      int currentPos = minus(add(startPos, acknowledge - mySocket.firstSending),MSS);     
       if (socketList[socIndex].hasSend && socketList[socIndex].sendTime[currentPos] == 1){
         socketList[socIndex].lastRTT = this->getHost()->getNetworkSystem()->getCurrentTime () - socketList[socIndex].sendFrom[currentPos];
         if (socketList[socIndex].estimatedRTT == 0){
@@ -1468,9 +1306,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         }
       }
 
-
       /*BEGIN TIMER*/
-      removeTime++;//fprintf(pFile, "add13 = %d, remove1 = %d\n", addTime, removeTime);
       this->cancelTimer(socketList[socIndex].currentTimerId);
       //There are on-fly bytes
       if (socketList[socIndex].nextSend > acknowledge){
@@ -1479,20 +1315,16 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         Time timeout = SIMPLE_TIME_OUT;
         if (socketList[socIndex].lastRTT != 0){
           timeout = socketList[socIndex].estimatedRTT + 4 * socketList[socIndex].devRTT;
-          //timeout = SIMPLE_TIME_OUT;
           timeout++;
         }
         socketList[socIndex].currentTimeout = timeout;        
         socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
-        addTime++;//fprintf(pFile, "add2newack = %d, remove2 = %d with timeout %llu\n", addTime, removeTime, timeout);
       }
       
       /*END TIMER*/
       weird = true;
       socketList[socIndex].sendBufLength -= (acknowledge - socketList[socIndex].firstSending);
-      
-      //fprintf(pFile, "Start weird, firstSending will be %lu with byte %04x \n", acknowledge, socketList[socIndex].sendBuf[add(startPos, acknowledge - socketList[socIndex].firstSending)] );
-      for (int i = 0; i < acknowledge - socketList[socIndex].firstSending; i++){
+      for (int i = 0; i < (int)(acknowledge - socketList[socIndex].firstSending); i++){
         socketList[socIndex].sendTime[startPos + i] = 0;
       }
       //Adjust sendbuf head
@@ -1509,60 +1341,57 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
 
     if (acknowledge >= socketList[socIndex].firstSending && acknowledge <= socketList[socIndex].firstSending + MSS){
       //Duplicate ACK event
-      if (!weird)
-      if (acknowledge == socketList[socIndex].firstSending){
-        if (socketList[socIndex].congestionState == C_SLOW_START){
-          //Remain state
-          socketList[socIndex].dupACKcount++;
-        } else if (socketList[socIndex].congestionState == C_CONGESTION_AVOIDANCE)  { 
-          //Remain state
+      if (!weird){
+        if (acknowledge == socketList[socIndex].firstSending){
+          if (socketList[socIndex].congestionState == C_SLOW_START){
+            //Remain state
             socketList[socIndex].dupACKcount++;
-        } else if (socketList[socIndex].congestionState == C_FAST_RECOVERY){
-          //Remain state
-          socketList[socIndex].cwnd += MSS;
-          tryToFreeSendingBuf(socIndex);
+          } else if (socketList[socIndex].congestionState == C_CONGESTION_AVOIDANCE)  { 
+            //Remain state
+              socketList[socIndex].dupACKcount++;
+          } else if (socketList[socIndex].congestionState == C_FAST_RECOVERY){
+            //Remain state
+            socketList[socIndex].cwnd += MSS;
+            tryToFreeSendingBuf(socIndex);
+          }
+        } else {
+          socketList[socIndex].dupACKcount = 0;
         }
-      } else {
-        socketList[socIndex].dupACKcount = 0;
-      }
-      if(!weird)
-      //dupACKcount == 3 event
-      if (socketList[socIndex].dupACKcount == 3){
-        if (socketList[socIndex].congestionState == C_SLOW_START){
-          //New state
-          socketList[socIndex].congestionState = C_FAST_RECOVERY;
-          socketList[socIndex].ssthresh = max(MSS,socketList[socIndex].cwnd / 2);
-          socketList[socIndex].cwnd = socketList[socIndex].ssthresh + 3 * MSS;
-          u32 savedSendBufHead = socketList[socIndex].sendBufHead;
-          u32 savedNextSend = socketList[socIndex].nextSend;
-          socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
-          socketList[socIndex].nextSend = socketList[socIndex].firstSending;
-          tryToFreeSendingBuf(socIndex, true); //Resend only the first sending 
-          socketList[socIndex].sendBufHead = savedSendBufHead;
-          socketList[socIndex].nextSend = savedNextSend;
-        } else if (socketList[socIndex].congestionState == C_CONGESTION_AVOIDANCE)  { 
-          //New state
-          socketList[socIndex].congestionState = C_FAST_RECOVERY;
-          socketList[socIndex].ssthresh = max(MSS,socketList[socIndex].cwnd / 2);
-          socketList[socIndex].cwnd = socketList[socIndex].ssthresh + 3 * MSS;
-          u32 savedSendBufHead = socketList[socIndex].sendBufHead;
-          u32 savedNextSend = socketList[socIndex].nextSend;
-          socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
-          socketList[socIndex].nextSend = socketList[socIndex].firstSending;
-          tryToFreeSendingBuf(socIndex, true); //Resend only the first sending 
-          socketList[socIndex].sendBufHead = savedSendBufHead;
-          socketList[socIndex].nextSend = savedNextSend;
+   
+        //dupACKcount == 3 event
+        if (socketList[socIndex].dupACKcount == 3){
+          if (socketList[socIndex].congestionState == C_SLOW_START){
+            //New state
+            socketList[socIndex].congestionState = C_FAST_RECOVERY;
+            socketList[socIndex].ssthresh = max(MSS,socketList[socIndex].cwnd / 2);
+            socketList[socIndex].cwnd = socketList[socIndex].ssthresh + 3 * MSS;
+            u32 savedSendBufHead = socketList[socIndex].sendBufHead;
+            u32 savedNextSend = socketList[socIndex].nextSend;
+            socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
+            socketList[socIndex].nextSend = socketList[socIndex].firstSending;
+            tryToFreeSendingBuf(socIndex, true); //Resend only the first sending 
+            socketList[socIndex].sendBufHead = savedSendBufHead;
+            socketList[socIndex].nextSend = savedNextSend;
+          } else if (socketList[socIndex].congestionState == C_CONGESTION_AVOIDANCE)  { 
+            //New state
+            socketList[socIndex].congestionState = C_FAST_RECOVERY;
+            socketList[socIndex].ssthresh = max(MSS,socketList[socIndex].cwnd / 2);
+            socketList[socIndex].cwnd = socketList[socIndex].ssthresh + 3 * MSS;
+            u32 savedSendBufHead = socketList[socIndex].sendBufHead;
+            u32 savedNextSend = socketList[socIndex].nextSend;
+            socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
+            socketList[socIndex].nextSend = socketList[socIndex].firstSending;
+            tryToFreeSendingBuf(socIndex, true); //Resend only the first sending 
+            socketList[socIndex].sendBufHead = savedSendBufHead;
+            socketList[socIndex].nextSend = savedNextSend;
+          }
         }
-        
       }
-
-
       
+  
       // new ACK event
       if (finishedThreeWay && acknowledge > socketList[socIndex].firstSending && acknowledge <= socketList[socIndex].firstSending + MSS){
-
         int startSendPos = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
-        //printf("---->New ack with state %d and ssthresh %d\n", socketList[socIndex].congestionState, socketList[socIndex].ssthresh);        
         if (socketList[socIndex].hasSend && socketList[socIndex].sendTime[startSendPos] == 1){
           socketList[socIndex].lastRTT = this->getHost()->getNetworkSystem()->getCurrentTime () - socketList[socIndex].sendFrom[startSendPos];
           if (socketList[socIndex].estimatedRTT == 0){
@@ -1581,23 +1410,19 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
         
         //If all on-fly packets are already sent (deal with Timer)
         if (socketList[socIndex].firstSending == socketList[socIndex].nextSend){
-          removeTime++;//fprintf(pFile, "add10 = %d, remove1 = %d\n", addTime, removeTime);
           this->cancelTimer(socketList[socIndex].currentTimerId);
         } else {
-          removeTime++;//fprintf(pFile, "add11 = %d, remove1 = %d\n", addTime, removeTime);
           this->cancelTimer(socketList[socIndex].currentTimerId);
           TimerPayload* payload = (struct TimerPayload*) malloc(sizeof(struct TimerPayload));
           payload->socIndex = socIndex;
           Time timeout = SIMPLE_TIME_OUT;
           if (socketList[socIndex].lastRTT != 0){
             timeout = socketList[socIndex].estimatedRTT + 4 * socketList[socIndex].devRTT;
-            //timeout = SIMPLE_TIME_OUT;
             timeout++;
           }
           socketList[socIndex].currentTimeout = timeout;        
           
           socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
-          addTime++;//fprintf(pFile, "add2newack = %d, remove2 = %d with timeout %llu\n", addTime, removeTime, timeout);
         }
 
         if (socketList[socIndex].congestionState == C_SLOW_START){
@@ -1605,7 +1430,6 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
           socketList[socIndex].cwnd += MSS;
           socketList[socIndex].dupACKcount = 0;
           tryToFreeSendingBuf(socIndex);
-
           if (socketList[socIndex].cwnd >= socketList[socIndex].ssthresh){
             socketList[socIndex].congestionState = C_CONGESTION_AVOIDANCE;
           }
@@ -1621,17 +1445,13 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
           socketList[socIndex].dupACKcount = 0;       
         }
         
-        //-------------------
-        
-        //tryToFreeSendingBuf(socIndex);
+        //-------------------        
         if (socketList[socIndex].isWaitingClose && socketList[socIndex].firstSending == socketList[socIndex].nextSend){
           socketList[socIndex].isWaitingClose = false;
           lateClose(socIndex, socketList[socIndex].closeId, socketList[socIndex].closePid, socketList[socIndex].closeFd);
         }
 
       } else if (weird){
-
-
         //Deal with cwnd
         if (socketList[socIndex].congestionState == C_SLOW_START){
           //Remain state
@@ -1661,47 +1481,28 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       //Then unblock write function if possible
       if (socketList[socIndex].isWaitingWrite
       && socketList[socIndex].sendBufLength + socketList[socIndex].writeLength <= SEND_BUF_SIZE){
-        
         //Append the requested chunk to the buffer, send and return immediately
         socketList[socIndex].sendBufLength += socketList[socIndex].writeLength;          
-        demAppend += socketList[socIndex].writeLength;
         copyBufWrite(socketList[socIndex].writeBuf, socketList[socIndex].sendBuf, socketList[socIndex].writeLength, socketList[socIndex].sendBufTail);
         socketList[socIndex].sendBufTail = add(socketList[socIndex].sendBufTail, socketList[socIndex].writeLength);
         socketList[socIndex].isWaitingWrite = false;
-        int nSent = tryToFreeSendingBuf(socIndex);
         this->returnSystemCall(socketList[socIndex].writeId, socketList[socIndex].writeLength);  
-        
-      }
-      if (weird){
-        ////fprintf(pFile, "sendBufLength %lu ",(socketList[socIndex].sendBufLength));
-        ////fprintf(pFile, "cwnd %lu ",(socketList[socIndex].cwnd));
-        ////fprintf(pFile, "window %lu ",(socketList[socIndex].peerWindow));
       }
       tryToFreeSendingBuf(socIndex);
       //////END
-    } else {
-      ////////fprintf(pFile, "FAIL\n" );
-    }
-    
-
+    } 
   }
-  this->freePacket(packet);
-  //fprintf(pFile, "Finish packetArrived\n");
-  
+  this->freePacket(packet); 
 }
 
 void TCPAssignment::timerCallback(void* payload)
 { 
-  //fprintf(pFile, "Start Timeout" );
   struct TimerPayload* message = (struct TimerPayload*) payload;
   int socIndex = message->socIndex;
-  
   Socket mySocket = socketList[socIndex];
   //0.Deal with S_TIME_WAIT
   if (mySocket.socketState == S_TIME_WAIT){
-    ////////fprintf(pFile, "CLOSE IT \n");
     socketList[socIndex].socketState  = S_CLOSED;
-    
     if (socketList[socIndex].receiveBuf) free(socketList[socIndex].receiveBuf);
     socketList[socIndex].receiveBuf = NULL;
     if (socketList[socIndex].sendBuf) free(socketList[socIndex].sendBuf);
@@ -1710,16 +1511,11 @@ void TCPAssignment::timerCallback(void* payload)
     socketList[socIndex].sendTime = NULL;
     if (socketList[socIndex].sendFrom) free(socketList[socIndex].sendFrom);
     socketList[socIndex].sendFrom = NULL;
-
-
     this->removeFileDescriptor(socketList[socIndex].pid, socketList[socIndex].fd);
-    //this->returnSystemCall(socketList[socIndex].closeId, 0);
     free(message);
-    //fprintf(pFile, "CLOSE1 IT \n");
     return;
   }
 
-  ////////fprintf(pFile, "%d.Done timeout !!! \n", processNumber);
   //1.Deal with congestion control
   socketList[socIndex].ssthresh = max(MSS,socketList[socIndex].cwnd / 2);       //////////////////////////////////
   socketList[socIndex].cwnd = MSS;                                              //Same for all congestion states//
@@ -1735,25 +1531,10 @@ void TCPAssignment::timerCallback(void* payload)
   }
 
   //2. Retransmit
-  removeTime++;//fprintf(pFile, "add12 = %d, remove1 = %d\n", addTime, removeTime);
   this->cancelTimer(socketList[socIndex].currentTimerId);
-  //socketList[socIndex].isWaitingTimeout = false;
-  //message->socIndex = socIndex;
-  //Time timeout = (Time)(socketList[socIndex].currentTimeout * 2);
-  //Time timeout = SIMPLE_TIME_OUT
-  //socketList[socIndex].currentTimeout = timeout;
-
-  //socketList[socIndex].currentTimerId = this->addTimer(payload, timeout);
-  //addTime++;////////fprintf(pFile, "add2 = %d, remove2 = %d\n", addTime, removeTime);
   socketList[socIndex].sendBufHead = minus(mySocket.sendBufHead, mySocket.nextSend - mySocket.firstSending);
   socketList[socIndex].nextSend = socketList[socIndex].firstSending;
   tryToFreeSendingBuf(socIndex, false, true);
   free(message);
-  if (1 == 1){
-    //fprintf(pFile, "Done timeout\n");
-  }
-
 }
-
 }
-//Note: timeout in addTimer
