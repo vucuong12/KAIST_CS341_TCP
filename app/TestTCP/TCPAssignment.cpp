@@ -1289,7 +1289,7 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
     //If this ACK is acknowleging something
     u32 acknowledge = htonl(tcpHeader.acknowledge);
     bool weird = false;
-    if (socketList[socIndex].nextSend + MSS < acknowledge){
+    if (socketList[socIndex].firstSending + MSS < acknowledge){
       //Not dup
       socketList[socIndex].dupACKcount = 0;
 
@@ -1330,10 +1330,13 @@ void TCPAssignment::packetArrived(std::string fromModule, Packet* packet)
       //Adjust sendbuf head
       if (socketList[socIndex].nextSend - socketList[socIndex].firstSending < acknowledge - socketList[socIndex].firstSending){
         socketList[socIndex].sendBufHead = add(socketList[socIndex].sendBufHead, acknowledge - socketList[socIndex].nextSend);
+        socketList[socIndex].nextSend = acknowledge;
+        socketList[socIndex].firstSending = acknowledge;
+      } else {
+        socketList[socIndex].firstSending = acknowledge;
       }
 
-      socketList[socIndex].nextSend = acknowledge;
-      socketList[socIndex].firstSending = acknowledge;
+      
 
     }
     
