@@ -155,7 +155,7 @@ class TCPAssignment : public HostModule, public NetworkModule, public SystemCall
 {
 private:
   FILE *pFile;
-  bool isActive;
+  bool isActive;  
   int addTime = 0;
   int removeTime = 0;
   int count = 0;
